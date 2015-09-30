@@ -303,8 +303,8 @@ helper.customUnits.add({
         slaveRelations: 'SlaveRelations'
     },
     sampleData: {
-        masterRelations: [],
-        slaveRelations: []
+        masterRelations: {items: [1]},
+        slaveRelations: {items: [2]}
     }
 });
 
