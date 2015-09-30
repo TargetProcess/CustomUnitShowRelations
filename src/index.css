@@ -1,0 +1,44 @@
+.mashupCustomUnitShowRelations {
+
+    &__svg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 99;
+    }
+
+    .i-role-card {
+
+        opacity: 0.3;
+
+    }
+
+    &__related,
+    &__source {
+
+        opacity: 1 !important;
+        background-color: #fff !important;
+        z-index: 9;
+        position: relative;
+
+    }
+
+    &__related {
+
+        outline: 3px solid pink !important;
+
+    }
+
+    &__related-outbound {
+
+        outline: 3px solid #7fdbff !important;
+
+    }
+
+    &__related-inbound {
+
+        outline: 3px solid #0074d9 !important;
+
+    }
+
+}
