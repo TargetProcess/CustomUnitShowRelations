@@ -1,0 +1,4 @@
+<svg width="28px" height="7px" viewBox="0 0 28 7" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0.5,3.5 L27.5,3.5" stroke="red" stroke-linecap="square"></path>
+    <path d="M27.5,3.5 L16.7,0.5 L16.7,6.5 L27.5,3.5 Z" stroke="red" fill="red" stroke-linecap="square"></path>
+</svg>

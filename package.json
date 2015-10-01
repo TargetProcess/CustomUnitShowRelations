@@ -36,6 +36,8 @@
     "targetprocess-mashup-helper": "^0.1.2",
     "targetprocess-mashup-manifest-loader": "targetprocess/targetprocess-mashup-manifest-loader",
     "targetprocess-mashup-webpack-plugin": "targetprocess/targetprocess-mashup-webpack-plugin",
+    "underscore": "^1.8.3",
+    "underscore-template-loader": "^0.5.1",
     "webpack": "^1.9.10"
   },
   "dependencies": {}

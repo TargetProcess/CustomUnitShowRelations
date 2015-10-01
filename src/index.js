@@ -1,156 +1,125 @@
 /* eslint id-length: 0 */
 
 import $ from 'jquery';
+import _ from 'underscore';
+
 import configurator from 'tau/configurator';
 import helper from 'targetprocess-mashup-helper';
 
+import {intersectRects} from './utils/intersection';
+
 import './index.css';
 
+import legendTemplate from './templates/legend.html';
+import svgTemplate from './templates/svg.html';
+
 let $card;
+let card;
+
+let $grid;
 let $table;
 let $svg;
-const ns = 'http://www.w3.org/2000/svg';
+let $legend;
 let isList;
 let cardId;
 
-var intersectSlices = ({x1: x11, x2: x12, y1: y11, y2: y12}, {x1: x21, x2: x22, y1: y21, y2: y22}) => {
+const relationTypes = [
+    {
+        name: 'Dependency',
+        style: '#000000'
+    },
+    {
+        name: 'Blocker',
+        style: '#bd0010'
+    },
+    {
+        name: 'Relation',
+        style: '#aaa'
+    },
+    {
+        name: 'Link',
+        style: '#36ab45'
+    },
+    {
+        name: 'Duplicate',
+        style: '#ff5400'
+    }
+];
 
-    var y = (y11 * (y22 - y21) * (x12 - x11) -
-        y21 * (y12 - y11) * (x22 - x21) +
-        (x21 - x11) * (y22 - y21) * (y12 - y11)) /
-        ((y22 - y21) * (x12 - x11) - (y12 - y11) * (x22 - x21));
+const getRelationColor = ({style: relationStyle}) =>
+    typeof relationStyle === 'object' ? relationStyle.stroke : relationStyle;
 
-    var x = (x11 * (x22 - x21) * (y12 - y11) -
-        x21 * (x12 - x11) * (y22 - y21) +
-        (y21 - y11) * (x22 - x21) * (x12 - x11)) /
-        ((x22 - x21) * (y12 - y11) - (x12 - x11) * (y22 - y21));
-
-    return {
-        x: x,
-        y: y
-    };
-
-};
-
-const getSlicesByRect = (rect) => {
-
-    return [{
-        x1: rect.x,
-        y1: rect.y,
-        x2: rect.x + rect.width,
-        y2: rect.y,
-    }, {
-        x1: rect.x + rect.width,
-        y1: rect.y,
-        x2: rect.x + rect.width,
-        y2: rect.y + rect.height,
-    }, {
-        x1: rect.x,
-        y1: rect.y + rect.height,
-        x2: rect.x + rect.width,
-        y2: rect.y + rect.height,
-    }, {
-        x1: rect.x,
-        y1: rect.y,
-        x2: rect.x,
-        y2: rect.y + rect.height,
-    }];
-
-};
-
-const checkInSlices = (point, s1, s2) => {
-
-    const isX1 = point.x >= Math.min(s1.x1, s1.x2) && point.x <= Math.max(s1.x1, s1.x2);
-    const isX2 = point.x >= Math.min(s2.x1, s2.x2) && point.x <= Math.max(s2.x1, s2.x2);
-
-    const isY1 = point.y >= Math.min(s1.y1, s1.y2) && point.y <= Math.max(s1.y1, s1.y2);
-    const isY2 = point.y >= Math.min(s2.y1, s2.y2) && point.y <= Math.max(s2.y1, s2.y2);
-
-    return isX1 && isX2 && isY1 && isY2;
-
-};
-
-const intersectRect = (rect, sc) => {
-
-    const rectSlices = getSlicesByRect(rect);
-
-    let intersectStart;
-
-    rectSlices.forEach((slice) => {
-
-        const p = intersectSlices(slice, sc);
-
-        if (checkInSlices(p, sc, slice)) {
-
-            intersectStart = p;
-
-        }
-
-    });
-
-    return intersectStart;
-
-};
-
-const intersectRects = (rect1, rect2) => {
-
-    const sc = {
-        x1: rect1.x + rect1.width / 2,
-        y1: rect1.y + rect1.height / 2,
-        x2: rect2.x + rect2.width / 2,
-        y2: rect2.y + rect2.height / 2
-    };
-
-    return {
-        start: intersectRect(rect1, sc),
-        end: intersectRect(rect2, sc),
-    };
-
-};
+const getRelationMarkerStartId = ({name}) => `${name}_start`;
+const getMasterRelationMarkerEndId = ({name}) => `${name}_master_end`;
+const getSlaveRelationMarkerEndId = ({name}) => `${name}_slave_end`;
 
 const getRelations = (entityId) => {
 
+    const processItem = (item, type) => ({
+        directionType: type.toLowerCase(),
+        relationType: {
+            name: item.RelationType.Name
+        },
+        entity: {
+            id: item[type].Id
+        }
+    });
+
     return $.ajax({
-        url: `${configurator.getApplicationPath()}/api/v1/generals/${entityId}?include=[MasterRelations[Master,RelationType],SlaveRelations[Slave,RelationType]]&format=json`,
+        url: `${configurator.getApplicationPath()}/api/v1/generals/${entityId}` +
+            `?include=[MasterRelations[Master,RelationType],SlaveRelations[Slave,RelationType]]&format=json`,
         contentType: 'application/json; charset=utf-8'
     })
-    .then((res) => {
-
-        const data = res.MasterRelations.Items.map((v) => ({
-            directionType: 'master',
-            relationType: {
-                name: v.RelationType.Name
-            },
-            entity: {
-                id: v.Master.Id
-            }
-        })).concat(res.SlaveRelations.Items.map((v) => ({
-            directionType: 'slave',
-            relationType: {
-                name: v.RelationType.Name
-            },
-            entity: {
-                id: v.Slave.Id
-            }
-        })));
-
-        return data;
-
-    })
-    .fail(() => {});
+    .then((res) =>
+        res.MasterRelations.Items.map((v) => processItem(v, 'Master'))
+            .concat(res.SlaveRelations.Items.map((v) => processItem(v, 'Slave')))
+    )
+    .fail(() => []);
 
 };
 
-const generateBezier = (start, end) => {
+const highlightSelected = (fromEl, toEl, line) => {
+
+    $grid.addClass('mashupCustomUnitShowRelations-highlighted');
+    $(fromEl).addClass('mashupCustomUnitShowRelations__highlighted');
+    $(toEl).addClass('mashupCustomUnitShowRelations__highlighted');
+
+    $svg.parent().addClass('mashupCustomUnitShowRelations__svg-highlighted');
+    $(line).css('opacity', 1);
+
+};
+
+const unhighlightSelected = (fromEl, toEl, line) => {
+
+    $grid.removeClass('mashupCustomUnitShowRelations-highlighted');
+    $(fromEl).removeClass('mashupCustomUnitShowRelations__highlighted');
+    $(toEl).removeClass('mashupCustomUnitShowRelations__highlighted');
+
+    $svg.parent().removeClass('mashupCustomUnitShowRelations__svg-highlighted');
+    $(line).removeAttr('style');
+
+};
+
+const generateBezier = (start, end, down = false) => {
 
     let points = [`M${start.x},${start.y}`];
 
-    const centerX = (start.x + end.x) / 2;
-    const centerY = (start.y + end.y) / 2;
-    // const half = Math.sqrt(Math.pow(centerX - start.x, 2) + Math.pow(centerY - start.Y, 2));
-    // const kat = half * Math.tan(Math.PI / 6);
+    const rad = Math.PI / 48 * (down ? -1 : 1);
 
-    const center = `${centerX * 1},${centerY * 1.01}`;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+
+    const centerOnLine = {
+        x: (start.x + end.x) / 2,
+        y: (start.y + end.y) / 2
+    };
+
+    const centerRot = {
+        x: (centerOnLine.x - start.x) * cos - (centerOnLine.y - start.y) * sin + start.x,
+        y: (centerOnLine.x - start.x) * sin + (centerOnLine.y - start.y) * cos + start.y
+    };
+
+    const center = `${centerRot.x},${centerRot.y}`;
 
     points = points.concat(`C${center}`);
     points = points.concat(center);
@@ -159,8 +128,9 @@ const generateBezier = (start, end) => {
 
 };
 
-const drawArrow = (fromEl, toEl) => {
+const drawRelation = (fromEl, toEl, relation) => {
 
+    const ns = 'http://www.w3.org/2000/svg';
     const cardRect = fromEl.getBoundingClientRect();
     const targetRect = toEl.getBoundingClientRect();
     const tableRect = $table[0].getBoundingClientRect();
@@ -181,60 +151,89 @@ const drawArrow = (fromEl, toEl) => {
 
     const points = intersectRects(cardPos, targetPos);
 
+    // if list, make income relations to the left, outcome to right of card
     if (isList) {
 
-        const offset = Math.random() * 500 * (Math.random() > 0.5 ? 1 : -1);
+        const offset = (relation.index + 1) * 50;
 
-        points.start.x = points.start.x + offset;
-        points.end.x = points.end.x + offset;
+        if (relation.directionType === 'master') {
+
+            points.start.x = cardPos.x + offset;
+            points.end.x = targetPos.x + offset;
+
+        } else {
+
+            points.start.x = cardPos.x + cardPos.width - offset;
+            points.end.x = targetPos.x + targetPos.width - offset;
+
+        }
 
     }
 
+    const bezierCoords = generateBezier(points.start, points.end, relation.directionType === 'master');
+
+    const relationType = _.findWhere(relationTypes, {
+        name: relation.relationType.name
+    });
+
+    const color = getRelationColor(relationType);
+
+    const helperLine = document.createElementNS(ns, 'path');
+
+    helperLine.setAttribute('class', 'helperline');
+    helperLine.setAttributeNS(null, 'd', bezierCoords);
+    helperLine.setAttributeNS(null, 'stroke', 'grey');
+    helperLine.setAttributeNS(null, 'fill', 'none');
+    helperLine.setAttributeNS(null, 'stroke-width', '20');
+
+    $svg[0].appendChild(helperLine);
+
     const line = document.createElementNS(ns, 'path');
 
-    line.setAttributeNS(null, 'd', generateBezier(points.start, points.end));
-    line.setAttributeNS(null, 'stroke', 'purple');
+    line.setAttribute('class', 'line');
+    line.setAttributeNS(null, 'd', bezierCoords);
+    line.setAttributeNS(null, 'stroke', color);
     line.setAttributeNS(null, 'fill', 'none');
     line.setAttributeNS(null, 'stroke-width', '2');
-    line.setAttributeNS(null, 'marker-end', 'url(#end)');
-    line.setAttributeNS(null, 'marker-start', 'url(#start)');
+
+    if (relation.directionType === 'master') {
+
+        line.setAttributeNS(null, 'marker-start', `url(#${getRelationMarkerStartId(relationType)})`);
+        line.setAttributeNS(null, 'marker-end', `url(#${getMasterRelationMarkerEndId(relationType)})`);
+
+    } else {
+
+        line.setAttributeNS(null, 'marker-end', `url(#${getRelationMarkerStartId(relationType)})`);
+        line.setAttributeNS(null, 'marker-start', `url(#${getSlaveRelationMarkerEndId(relationType)})`);
+
+    }
 
     $svg[0].appendChild(line);
+
+    const $lines = $(helperLine).add(line);
+
+    $lines.on('mouseenter', () => highlightSelected(fromEl, toEl, line));
+    $lines.on('mouseleave', () => unhighlightSelected(fromEl, toEl, line));
+
+    $(toEl).css('outline-color', color);
+    $(fromEl).css('outline-color', color);
 
 };
 
 const highlightRelation = (relation) => {
 
-    const $target = $(`.i-role-card[data-entity-id=${relation.entity.id}]`);
+    const $target = relation.$target;
 
-    if ($target.length) {
+    $target.addClass('mashupCustomUnitShowRelations__related');
+    $target.addClass(relation.directionType === 'master' ?
+            'mashupCustomUnitShowRelations__related-inbound' :
+            'mashupCustomUnitShowRelations__related-outbound');
 
-        $target.addClass('mashupCustomUnitShowRelations__related');
-        $target.addClass(relation.directionType === 'master' ? 'mashupCustomUnitShowRelations__related-inbound' : 'mashupCustomUnitShowRelations__related-outbound');
-
-        $target.each((k, v) => {
-
-            if (relation.directionType === 'master') {
-
-                drawArrow(v, $card[0]);
-
-            } else {
-
-                drawArrow($card[0], v);
-
-            }
-
-        });
-
-
-
-    }
+    $target.toArray().forEach((v) => drawRelation(card, v, relation));
 
 };
 
 const unhighlightRelated = () => {
-
-    const $grid = $('.i-role-grid');
 
     $grid.removeClass('mashupCustomUnitShowRelations');
     $grid.find('.i-role-card').removeClass('mashupCustomUnitShowRelations__related');
@@ -243,15 +242,15 @@ const unhighlightRelated = () => {
     $grid.find('.i-role-card').removeClass('mashupCustomUnitShowRelations__source');
     $svg.remove();
 
+    $legend.remove();
+
 };
 
-const highlightRelated = (cardId, relations) => {
-
-    const $grid = $('.i-role-grid');
-
-    isList = false;
+const highlightRelated = (relations) => {
 
     $table = $grid.children('table');
+    isList = false;
+
     if (!$table.length) {
 
         $table = $grid.find('.i-role-list-root-container');
@@ -259,44 +258,77 @@ const highlightRelated = (cardId, relations) => {
 
     }
 
-    const height = $table.height();
-    const width = $table.width();
-
     $grid.addClass('mashupCustomUnitShowRelations');
-
-    $svg = $(`
-        <svg xmlns="http://www.w3.org/2000/svg" class="mashupCustomUnitShowRelations__svg" fill="pink" viewBox="0 0 ${width} ${height}" width="${width}px" height="${height}px">
-            <defs>
-                <marker id="start" markerWidth="7" markerHeight="7" refX="5" refY="5">
-                    <circle cx="5" cy="5" r="2" style="stroke: none; fill:purple;"/>
-                </marker>
-                <marker id="end" markerWidth="4" markerHeight="4" orient="auto" refY="2">
-                    <path d="M0,0 L4,2 0,4" fill="purple" />
-                </marker>
-            </defs>
-        </svg>`);
-
-    $svg.on('click', unhighlightRelated);
 
     $card = $grid.find(`.i-role-card[data-id=${cardId}]`);
     $card.addClass('mashupCustomUnitShowRelations__source');
+    card = $card[0];
+
+    const height = $table.height();
+    const width = $table.width();
+
+    $svg = $(svgTemplate({
+        relationTypes, width, height, getRelationColor, getRelationMarkerStartId,
+        getMasterRelationMarkerEndId, getSlaveRelationMarkerEndId
+    }));
+
+    $svg.on('click', unhighlightRelated);
 
     if (isList) {
+
         $grid.find('.i-role-unit-editor-popup-position-within').append($svg);
+
     } else {
+
         $grid.append($svg);
+
     }
 
+    let processedRelations = relations
+        .map((v) => ({
+            ...v,
+            $target: $(`.i-role-card[data-entity-id=${v.entity.id}]`)
+        }))
+        .filter((v) => v.$target.length);
 
+    if (isList) {
 
-    relations.forEach(highlightRelation);
+        processedRelations = _.groupBy(processedRelations, (v) => v.directionType);
+        processedRelations = _.map(processedRelations, (list) => list.map((v, k) => ({...v, index: k})));
+
+        processedRelations = _.reduce(processedRelations, (res, v) => res.concat(v), []);
+
+    }
+
+    processedRelations.forEach(highlightRelation);
+
+};
+
+const createLegend = (relations) => {
+
+    const existingNames = relations
+        .filter((v) => $(`.i-role-card[data-entity-id=${v.entity.id}]`).length)
+        .map((v) => v.relationType.name);
+
+    const existingRelationTypes = relationTypes.filter((v) => existingNames.indexOf(v.name) >= 0);
+
+    const $grid = $('.i-role-grid');
+
+    $legend = $(legendTemplate({
+        relationTypes: existingRelationTypes,
+        getRelationColor
+    }));
+
+    $grid.parent().append($legend);
 
 };
 
 helper.customUnits.add({
     id: 'my_entity_state',
     name: 'show relations',
-    template: '<div class="tau-board-unit__value"><button type="button" class="cu-showrelations">Show relations</button></div>',
+    template: `<div class="tau-board-unit__value">
+        <button type="button" class="cu-showrelations">Show relations</button>
+    </div>`,
     hideIf: ({masterRelations, slaveRelations}) => !masterRelations.items.length && !slaveRelations.items.length,
     model: {
         masterRelations: 'MasterRelations',
@@ -313,18 +345,24 @@ $(document.body).on('click', '.cu-showrelations', (e) => {
     e.stopPropagation();
     e.preventDefault();
 
+    $grid = $('.i-role-grid');
+
     const entityId = $(e.target).parents('.i-role-card').data('entityId');
+
+    if (!entityId) {
+
+        return;
+
+    }
+
     cardId = $(e.target).parents('.i-role-card').data('id');
 
+    getRelations(entityId)
+        .then((relations) => {
 
+            createLegend(relations);
+            highlightRelated(relations);
 
-
-
-    // if (!$card.hasClass('tau-selected')) {
-
-        getRelations(entityId)
-            .then((relations) => highlightRelated(cardId, relations));
-
-    // }
+        });
 
 });

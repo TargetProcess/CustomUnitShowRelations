@@ -59,6 +59,9 @@ var makeWebpackConfig = function(opts) {
         }, {
             test: /\.css$/,
             loader: 'style!css!postcss?parser=postcss-scss'
+        }, {
+            test: /\.html$/,
+            loader: 'underscore-template'
         }]
     };
 
