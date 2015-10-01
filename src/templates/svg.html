@@ -1,9 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" class="mashupCustomUnitShowRelations__svg"
     viewBox="0 0 <%= width %> <%= height%>"
-    width="<%= width %>px" height="<%= height%>px"
->
+    width="<%= width %>px" height="<%= height%>px">
     <defs>
-        <% relationTypes.forEach((v) => { %>
+        <% relationTypes.forEach(function(v) { %>
 
             <marker id="<%= getRelationMarkerStartId(v) %>" markerWidth="7" markerHeight="7" refX="5" refY="5">
                 <circle cx="5" cy="5" r="2" style="stroke: none; fill:<%= getRelationColor(v) %>;"/>
@@ -11,7 +10,6 @@
             <marker id="<%= getMasterRelationMarkerEndId(v) %>" markerWidth="4" markerHeight="4" orient="auto" refY="2" refX="0">
                 <path d="M0,0 L4,2 0,4" fill="<%= getRelationColor(v) %>" />
             </marker>
-
             <marker id="<%= getSlaveRelationMarkerEndId(v) %>" markerWidth="4" markerHeight="4" orient="auto" refY="2" refX="4">
                 <path d="M0,0 L4,2 0,4" fill="<%= getRelationColor(v) %>" transform="rotate(180 2 2)" />
             </marker>
