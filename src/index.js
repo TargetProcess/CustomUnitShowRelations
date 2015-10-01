@@ -215,6 +215,8 @@ const drawRelation = (fromEl, toEl, relation) => {
     $lines.on('mouseenter', () => highlightSelected(fromEl, toEl, line));
     $lines.on('mouseleave', () => unhighlightSelected(fromEl, toEl, line));
 
+    $lines.on('click', (e) => e.stopPropagation());
+
     $(toEl).css('outline-color', color);
     $(fromEl).css('outline-color', color);
 
@@ -236,6 +238,7 @@ const highlightRelation = (relation) => {
 const unhighlightRelated = () => {
 
     $grid.removeClass('mashupCustomUnitShowRelations');
+    $grid.removeClass('mashupCustomUnitShowRelations-highlighted');
     $grid.find('.i-role-card').removeClass('mashupCustomUnitShowRelations__related');
     $grid.find('.i-role-card').removeClass('mashupCustomUnitShowRelations__related-inbound');
     $grid.find('.i-role-card').removeClass('mashupCustomUnitShowRelations__related-outbound');
