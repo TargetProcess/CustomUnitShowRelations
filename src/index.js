@@ -339,7 +339,7 @@ const createLegend = (relations) => {
 
 };
 
-$(document.body).on('click', '.i-role-card-content-dependencies', (e) => {
+$(document.body).on('click', '.tau-board-unit_type_relations-counter-in-out', (e) => {
 
     e.stopPropagation();
     e.preventDefault();

@@ -81,3 +81,7 @@
     }
 
 }
+
+.i-role-grid .tau-board-unit_type_relations-counter-in-out {
+    cursor: pointer !important;
+}
