@@ -21,7 +21,9 @@ let $table;
 let $svg;
 let $legend;
 let isList;
-let cardId;
+
+let entityId;
+let entityType;
 
 const relationTypes = [
     {
@@ -53,7 +55,7 @@ const getRelationMarkerStartId = ({name}) => `${name}_start`;
 const getMasterRelationMarkerEndId = ({name}) => `${name}_master_end`;
 const getSlaveRelationMarkerEndId = ({name}) => `${name}_slave_end`;
 
-const getRelations = (entityId) => {
+const getRelations = () => {
 
     const processItem = (item, type) => ({
         directionType: type.toLowerCase(),
@@ -263,7 +265,6 @@ const highlightRelated = (relations) => {
 
     $grid.addClass('mashupCustomUnitShowRelations');
 
-    $card = $grid.find(`.i-role-card[data-id=${cardId}]`);
     $card.addClass('mashupCustomUnitShowRelations__source');
     card = $card[0];
 
@@ -315,42 +316,40 @@ const createLegend = (relations) => {
 
     const existingRelationTypes = relationTypes.filter((v) => existingNames.indexOf(v.name) >= 0);
 
-    const $grid = $('.i-role-grid');
-
     $legend = $(legendTemplate({
         relationTypes: existingRelationTypes,
+        showMessage: existingNames.length < relations.length,
         getRelationColor
     }));
 
     $grid.parent().append($legend);
 
+    $legend.on('click', 'a', () => {
+
+        helper.getAppConfigurator().then((c) => {
+
+            c.getEntityViewService().showEntityView({
+                entityId,
+                entityType
+            });
+
+        });
+
+    });
+
 };
 
-helper.customUnits.add({
-    id: 'my_entity_state',
-    name: 'show relations',
-    template: `<div class="tau-board-unit__value">
-        <button type="button" class="cu-showrelations">Show relations</button>
-    </div>`,
-    hideIf: ({masterRelations, slaveRelations}) => !masterRelations.items.length && !slaveRelations.items.length,
-    model: {
-        masterRelations: 'MasterRelations',
-        slaveRelations: 'SlaveRelations'
-    },
-    sampleData: {
-        masterRelations: {items: [1]},
-        slaveRelations: {items: [2]}
-    }
-});
-
-$(document.body).on('click', '.cu-showrelations', (e) => {
+$(document.body).on('click', '.i-role-card-content-dependencies', (e) => {
 
     e.stopPropagation();
     e.preventDefault();
 
     $grid = $('.i-role-grid');
 
-    const entityId = $(e.target).parents('.i-role-card').data('entityId');
+    $card = $(e.target).parents('.i-role-card');
+
+    entityId = $card.data('entityId');
+    entityType = $card.data('entityType');
 
     if (!entityId) {
 
@@ -358,9 +357,7 @@ $(document.body).on('click', '.cu-showrelations', (e) => {
 
     }
 
-    cardId = $(e.target).parents('.i-role-card').data('id');
-
-    getRelations(entityId)
+    getRelations()
         .then((relations) => {
 
             createLegend(relations);
