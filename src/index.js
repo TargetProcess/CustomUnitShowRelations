@@ -20,7 +20,7 @@ let $grid;
 let $table;
 let $svg;
 let $legend;
-let isList;
+let viewType;
 
 let entityId;
 let entityType;
@@ -130,7 +130,7 @@ const generateBezier = (start, end, down = false) => {
 
 };
 
-const drawRelation = (fromEl, toEl, relation) => {
+const drawArrow = (fromEl, toEl, relation) => {
 
     const ns = 'http://www.w3.org/2000/svg';
     const cardRect = fromEl.getBoundingClientRect();
@@ -154,7 +154,7 @@ const drawRelation = (fromEl, toEl, relation) => {
     const points = intersectRects(cardPos, targetPos);
 
     // if list, make income relations to the left, outcome to right of card
-    if (isList) {
+    if (viewType === 'list') {
 
         const offset = (relation.index + 1) * 50;
 
@@ -219,8 +219,40 @@ const drawRelation = (fromEl, toEl, relation) => {
 
     $lines.on('click', (e) => e.stopPropagation());
 
-    $(toEl).css('outline-color', color);
-    $(fromEl).css('outline-color', color);
+};
+
+const highlightCard = (el, relation) => {
+
+    const relationType = _.findWhere(relationTypes, {
+        name: relation.relationType.name
+    });
+
+    const color = getRelationColor(relationType);
+    let $el = $(el);
+
+    if (viewType === 'timeline') {
+
+        const $parent = $el.parent('.i-role-timeline-card-holder');
+
+        if ($parent.length) {
+
+            $el.addClass('mashupCustomUnitShowRelations__related');
+            $el.addClass(relation.directionType === 'master' ?
+                    'mashupCustomUnitShowRelations__related-inbound' :
+                    'mashupCustomUnitShowRelations__related-outbound');
+
+            $el = $parent;
+
+        }
+
+    }
+
+    $el.addClass('mashupCustomUnitShowRelations__related');
+    $el.addClass(relation.directionType === 'master' ?
+            'mashupCustomUnitShowRelations__related-inbound' :
+            'mashupCustomUnitShowRelations__related-outbound');
+
+    $el.css('outline-color', color);
 
 };
 
@@ -228,12 +260,17 @@ const highlightRelation = (relation) => {
 
     const $target = relation.$target;
 
-    $target.addClass('mashupCustomUnitShowRelations__related');
-    $target.addClass(relation.directionType === 'master' ?
-            'mashupCustomUnitShowRelations__related-inbound' :
-            'mashupCustomUnitShowRelations__related-outbound');
+    $target.toArray().forEach((v) => {
 
-    $target.toArray().forEach((v) => drawRelation(card, v, relation));
+        highlightCard(v, relation);
+
+        if (viewType !== 'timeline') {
+
+            drawArrow(card, v, relation);
+
+        }
+
+    });
 
 };
 
@@ -241,32 +278,30 @@ const unhighlightRelated = () => {
 
     $grid.removeClass('mashupCustomUnitShowRelations');
     $grid.removeClass('mashupCustomUnitShowRelations-highlighted');
-    $grid.find('.i-role-card').removeClass('mashupCustomUnitShowRelations__related');
-    $grid.find('.i-role-card').removeClass('mashupCustomUnitShowRelations__related-inbound');
-    $grid.find('.i-role-card').removeClass('mashupCustomUnitShowRelations__related-outbound');
-    $grid.find('.i-role-card').removeClass('mashupCustomUnitShowRelations__source');
-    $svg.remove();
 
-    $legend.remove();
+    ['related', 'related-inbound', 'related-outbound', 'source'].forEach((v) => {
 
-};
+        const className = `mashupCustomUnitShowRelations__${v}`;
 
-const highlightRelated = (relations) => {
+        $grid.find(`.${className}`).removeClass(className);
 
-    $table = $grid.children('table');
-    isList = false;
+    });
 
-    if (!$table.length) {
+    if ($svg) {
 
-        $table = $grid.find('.i-role-list-root-container');
-        isList = true;
+        $svg.remove();
 
     }
 
-    $grid.addClass('mashupCustomUnitShowRelations');
+    if ($legend) {
 
-    $card.addClass('mashupCustomUnitShowRelations__source');
-    card = $card[0];
+        $legend.remove();
+
+    }
+
+};
+
+const addSvg = () => {
 
     const height = $table.height();
     const width = $table.width();
@@ -278,13 +313,60 @@ const highlightRelated = (relations) => {
 
     $svg.on('click', unhighlightRelated);
 
-    if (isList) {
+    if (viewType === 'list') {
 
         $grid.find('.i-role-unit-editor-popup-position-within').append($svg);
+
+    } else if (viewType === 'timeline') {
+
+        $grid.find('.tau-timeline-canvas').append($svg);
 
     } else {
 
         $grid.append($svg);
+
+    }
+
+};
+
+const highlightRelated = (relations) => {
+
+    $table = $grid.children('table');
+    viewType = 'board';
+
+    if (!$table.length) {
+
+        $table = $grid.find('.i-role-list-root-container');
+        viewType = 'list';
+
+    }
+
+    if (!$table.length) {
+
+        // $table = $grid.find('.tau-timeline-flow');
+        viewType = 'timeline';
+
+    }
+
+    $grid.addClass('mashupCustomUnitShowRelations');
+
+    $card.addClass('mashupCustomUnitShowRelations__source');
+    card = $card[0];
+
+    if (viewType !== 'timeline') {
+
+        addSvg();
+
+    } else {
+
+        $grid.one('click', (e) => {
+
+            e.stopPropagation();
+            e.preventDefault();
+
+            unhighlightRelated();
+
+        });
 
     }
 
@@ -295,7 +377,7 @@ const highlightRelated = (relations) => {
         }))
         .filter((v) => v.$target.length);
 
-    if (isList) {
+    if (viewType === 'list') {
 
         processedRelations = _.groupBy(processedRelations, (v) => v.directionType);
         processedRelations = _.map(processedRelations, (list) => list.map((v, k) => ({...v, index: k})));
@@ -343,6 +425,12 @@ $(document.body).on('click', '.tau-board-unit_type_relations-counter-in-out', (e
 
     e.stopPropagation();
     e.preventDefault();
+
+    if ($grid) {
+
+        unhighlightRelated();
+
+    }
 
     $grid = $('.i-role-grid');
 
