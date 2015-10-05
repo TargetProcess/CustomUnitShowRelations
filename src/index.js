@@ -373,7 +373,7 @@ const highlightRelated = (relations) => {
     let processedRelations = relations
         .map((v) => ({
             ...v,
-            $target: $(`.i-role-card[data-entity-id=${v.entity.id}]`)
+            $target: $grid.find(`.i-role-card[data-entity-id=${v.entity.id}]`)
         }))
         .filter((v) => v.$target.length);
 
