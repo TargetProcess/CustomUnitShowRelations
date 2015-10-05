@@ -52,13 +52,13 @@ const getRelationColor = ({style: relationStyle}) =>
     typeof relationStyle === 'object' ? relationStyle.stroke : relationStyle;
 
 const getRelationMarkerStartId = ({name}) => `${name}_start`;
-const getMasterRelationMarkerEndId = ({name}) => `${name}_master_end`;
-const getSlaveRelationMarkerEndId = ({name}) => `${name}_slave_end`;
+const getInboundRelationMarkerEndId = ({name}) => `${name}_inbound_end`;
+const getOutboundRelationMarkerEndId = ({name}) => `${name}_outbound_end`;
 
 const getRelations = () => {
 
-    const processItem = (item, type) => ({
-        directionType: type.toLowerCase(),
+    const processItem = (item, type, directionType) => ({
+        directionType,
         relationType: {
             name: item.RelationType.Name
         },
@@ -73,8 +73,8 @@ const getRelations = () => {
         contentType: 'application/json; charset=utf-8'
     })
     .then((res) =>
-        res.MasterRelations.Items.map((v) => processItem(v, 'Master'))
-            .concat(res.SlaveRelations.Items.map((v) => processItem(v, 'Slave')))
+        res.MasterRelations.Items.map((v) => processItem(v, 'Master', 'inbound'))
+            .concat(res.SlaveRelations.Items.map((v) => processItem(v, 'Slave', 'outbound')))
     )
     .fail(() => []);
 
@@ -158,7 +158,7 @@ const drawArrow = (fromEl, toEl, relation) => {
 
         const offset = (relation.index + 1) * 50;
 
-        if (relation.directionType === 'master') {
+        if (relation.directionType === 'inbound') {
 
             points.start.x = cardPos.x + offset;
             points.end.x = targetPos.x + offset;
@@ -172,7 +172,7 @@ const drawArrow = (fromEl, toEl, relation) => {
 
     }
 
-    const bezierCoords = generateBezier(points.start, points.end, relation.directionType === 'master');
+    const bezierCoords = generateBezier(points.start, points.end, relation.directionType === 'inbound');
 
     const relationType = _.findWhere(relationTypes, {
         name: relation.relationType.name
@@ -198,15 +198,15 @@ const drawArrow = (fromEl, toEl, relation) => {
     line.setAttributeNS(null, 'fill', 'none');
     line.setAttributeNS(null, 'stroke-width', '2');
 
-    if (relation.directionType === 'master') {
+    if (relation.directionType === 'inbound') {
 
-        line.setAttributeNS(null, 'marker-start', `url(#${getRelationMarkerStartId(relationType)})`);
-        line.setAttributeNS(null, 'marker-end', `url(#${getMasterRelationMarkerEndId(relationType)})`);
+        line.setAttributeNS(null, 'marker-start', `url(#${getInboundRelationMarkerEndId(relationType)})`);
+        line.setAttributeNS(null, 'marker-end', `url(#${getRelationMarkerStartId(relationType)})`);
 
     } else {
 
-        line.setAttributeNS(null, 'marker-end', `url(#${getRelationMarkerStartId(relationType)})`);
-        line.setAttributeNS(null, 'marker-start', `url(#${getSlaveRelationMarkerEndId(relationType)})`);
+        line.setAttributeNS(null, 'marker-start', `url(#${getRelationMarkerStartId(relationType)})`);
+        line.setAttributeNS(null, 'marker-end', `url(#${getOutboundRelationMarkerEndId(relationType)})`);
 
     }
 
@@ -237,9 +237,7 @@ const highlightCard = (el, relation) => {
         if ($parent.length) {
 
             $el.addClass('mashupCustomUnitShowRelations__related');
-            $el.addClass(relation.directionType === 'master' ?
-                    'mashupCustomUnitShowRelations__related-inbound' :
-                    'mashupCustomUnitShowRelations__related-outbound');
+            $el.addClass(`mashupCustomUnitShowRelations__${relation.directionType}`);
 
             $el = $parent;
 
@@ -248,9 +246,7 @@ const highlightCard = (el, relation) => {
     }
 
     $el.addClass('mashupCustomUnitShowRelations__related');
-    $el.addClass(relation.directionType === 'master' ?
-            'mashupCustomUnitShowRelations__related-inbound' :
-            'mashupCustomUnitShowRelations__related-outbound');
+    $el.addClass(`mashupCustomUnitShowRelations__related-${relation.directionType}`);
 
     $el.css('outline-color', color);
 
@@ -308,7 +304,7 @@ const addSvg = () => {
 
     $svg = $(svgTemplate({
         relationTypes, width, height, getRelationColor, getRelationMarkerStartId,
-        getMasterRelationMarkerEndId, getSlaveRelationMarkerEndId
+        getInboundRelationMarkerEndId, getOutboundRelationMarkerEndId
     }));
 
     $svg.on('click', unhighlightRelated);
