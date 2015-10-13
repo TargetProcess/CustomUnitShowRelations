@@ -9,9 +9,10 @@
   ],
   "author": "Aliaksei Shytkin <shitkin@targetprocess.com>",
   "scripts": {
-    "start": "rm -rf ../../Targetprocess-mashups/Common/CustomUnitShowRelations && NODE_ENV=development webpack --watch --output-path ../../Targetprocess-mashups/Common/CustomUnitShowRelations",
+    "start": "rm -rf $TARGETPROCESS_MASHUPS_PATH/CustomUnitShowRelations && NODE_ENV=development webpack --watch --output-path $TARGETPROCESS_MASHUPS_PATH/CustomUnitShowRelations",
     "build": "webpack",
-    "build-production": "webpack --config webpack-production.config.js"
+    "build-production": "webpack --config webpack-production.config.js --output-path build && mv build/index.js build/release.js",
+    "build-library": "rm -rf build/library && NODE_ENV=production webpack --config webpack-library.config.js --output-path build/library --progress &&  cp src/doc/*.{mkd,png} build/library"
   },
   "licenses": [
     {
