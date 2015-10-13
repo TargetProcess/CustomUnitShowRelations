@@ -1,7 +1,7 @@
 {
-    "ShortDescription": "This mashup does something, I suppose.",
+    "ShortDescription": "This mashup enhances existing relations unit on cards to show the relations as arrows on a board or list view.",
     "CompatibleTpVersion": {
-        "Minimum": "3.6.0"
+        "Minimum": "3.0.0"
     },
     "Placeholders": [
         "restui_board"
