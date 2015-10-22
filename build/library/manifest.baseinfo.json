@@ -1,6 +1,6 @@
 {
-    "ShortDescription": "This mashup does something, I suppose.",
+    "ShortDescription": "Show relations as arrows on a Board or List View.",
     "CompatibleTpVersion": {
-        "Minimum": "3.6.0"
+        "Minimum": "3.0.0"
     }
 }
