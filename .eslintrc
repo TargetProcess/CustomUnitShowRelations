@@ -2,7 +2,7 @@
     "parser": "babel-eslint",
 
     "plugins": [
-        
+
     ],
 
      "env": {
@@ -134,7 +134,7 @@
         "consistent-return": 2,
         "consistent-this": [2, "self"],
         "constructor-super": 2,
-        "curly": [2, "all"],
+        "curly": [2, "multi-line"],
         "default-case": 2,
         "dot-location": [2, "property"],
         "dot-notation": [2, {"allowKeywords": true}],
@@ -146,7 +146,7 @@
         "global-require": 2,
         "guard-for-in": 2,
         "handle-callback-err": [2, "err"],
-        "id-length": [2, {"min": 2, "exceptions": ["i", "k", "v"]}],
+        "id-length": [0, {"min": 2, "exceptions": ["i", "k", "v", "$", "_", "e"]}],
         "indent": [2, 4, {"SwitchCase": 1}],
         "init-declarations": 0,
         "jsx-quotes": [2, "prefer-double"],
