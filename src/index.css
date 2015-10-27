@@ -4,7 +4,7 @@
         position: absolute;
         top: 0;
         left: 0;
-        z-index: 99;
+        z-index: 9;
     }
 
     .i-role-card,
@@ -19,14 +19,8 @@
     &__source {
 
         opacity: 1 !important;
-        /*background-color: #fff !important;*/
         z-index: 9;
         position: relative;
-
-    }
-
-    &__related.tau-selected,
-    &__source.tau-selected {
 
     }
 
