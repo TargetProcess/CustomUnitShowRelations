@@ -10,6 +10,7 @@ let $legend;
 let viewType;
 let $grid;
 let cardsByEntityId = {};
+let selectedCardIds = [];
 
 import legendTemplate from './templates/legend.html';
 import svgTemplate from './templates/svg.html';
@@ -196,6 +197,26 @@ const drawRelationArrow = (relation, fromEl, toEl) => {
 
 };
 
+const hideSelection = (card) => {
+
+    const $card = $(card);
+
+    if ($card.hasClass('tau-selected')) {
+
+        $card.removeClass('tau-selected');
+        selectedCardIds = selectedCardIds.concat($card.data('id'));
+
+    }
+
+};
+
+const restoreSelection = () => {
+
+    selectedCardIds.forEach((id) => $grid.find(`.i-role-card[data-id=${id}]`).addClass('tau-selected'));
+    selectedCardIds = [];
+
+};
+
 const highlightCard = (card, color, directionType, {outline}) => {
 
     let $el = $(card);
@@ -206,6 +227,8 @@ const highlightCard = (card, color, directionType, {outline}) => {
 
         if ($parent.length) {
 
+            hideSelection($el);
+
             $el.addClass('mashupCustomUnitShowRelations__related');
             $el.addClass(`mashupCustomUnitShowRelations__${directionType}`);
 
@@ -215,6 +238,7 @@ const highlightCard = (card, color, directionType, {outline}) => {
 
     }
 
+    hideSelection($el);
     $el.addClass('mashupCustomUnitShowRelations__related');
 
     if (outline) {
@@ -357,6 +381,7 @@ export const highlightCardsByRelations = (relations, sourceCard, options = {outl
 
     $grid.addClass('mashupCustomUnitShowRelations');
     $(sourceCard).addClass('mashupCustomUnitShowRelations__source');
+    hideSelection(sourceCard);
 
     relations.forEach((relation) => highlightCardsByRelation(relation, options));
 
@@ -367,6 +392,7 @@ export const removeAllDrawn = () => {
     cleanGridAndCards();
     removeSvg();
     removeLegend();
+    restoreSelection();
 
 };
 

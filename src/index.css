@@ -19,9 +19,14 @@
     &__source {
 
         opacity: 1 !important;
-        background-color: #fff !important;
+        /*background-color: #fff !important;*/
         z-index: 9;
         position: relative;
+
+    }
+
+    &__related.tau-selected,
+    &__source.tau-selected {
 
     }
 
