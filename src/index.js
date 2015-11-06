@@ -29,6 +29,21 @@ const onToolbarRendered = (next) => addBusListener('board.toolbar', 'boardSettin
 
 const onUnitClick = (next) => $(document.body).on('click', '.tau-board-unit_type_relations-counter-in-out', next);
 
+const onZoomLevelChanged = (next) => {
+
+    addBusListener('board_plus', 'model.zoomLevelChanged', () => next());
+
+};
+
+const onModify = (next) => {
+
+    addBusListener('board_plus', 'boardSettings.ready', () => next());
+    addBusListener('newlist', 'boardSettings.ready', () => next());
+
+};
+
+const onHideEmptyLines = (next) => $(document).on('click', '.i-role-hide-empty-lanes', () => next());
+
 const initUnit = () => {
 
     let isEnabled = true;
@@ -100,7 +115,7 @@ const initUnit = () => {
 const applyByCards = (cards) => {
 
     const cardsById = _.groupBy(cards, (card) => $(card).data('entityId'));
-    const ids = Object.keys(cardsById);
+    const ids = Object.keys(cardsById).filter((v) => v.match(/^\d+$/));
 
     getRelationsByIds(ids)
         .then((relations_) => {
@@ -140,6 +155,14 @@ const initButton = () => {
 
     let $button;
 
+    const turnOff = () => {
+
+        isEnabled = false;
+        if ($button) $button.text(disabledText);
+        removeAllDrawn();
+
+    };
+
     const createButton = () => {
 
         $button = $(`<button class="tau-btn" type="button" style="margin-left: 10px;" />`);
@@ -171,8 +194,7 @@ const initButton = () => {
 
             } else {
 
-                $button.text(disabledText);
-                removeAllDrawn();
+                turnOff();
 
             }
 
@@ -186,11 +208,14 @@ const initButton = () => {
 
         if (viewMode === 'list' || viewMode === 'timeline') return;
 
-        isEnabled = false;
         $el.find('.tau-board-view-switch').after(createButton());
-        $button.text(isEnabled ? enabledText : disabledText);
+        turnOff();
 
     });
+
+    onZoomLevelChanged(turnOff);
+    onModify(turnOff);
+    onHideEmptyLines(turnOff);
 
 };
 
