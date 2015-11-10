@@ -27,6 +27,8 @@ const onToolbarRendered = (next) => addBusListener('board.toolbar', 'boardSettin
     {element: $el}
 ) => next($el, settings));
 
+const onNewListChanged = (next) => addBusListener('newlist', 'view.cell.skeleton.built', () => next());
+
 const onUnitClick = (next) => $(document.body).on('click', '.tau-board-unit_type_relations-counter-in-out', next);
 
 const onZoomLevelChanged = (next) => {
@@ -216,6 +218,7 @@ const initButton = () => {
     onZoomLevelChanged(turnOff);
     onModify(turnOff);
     onHideEmptyLines(turnOff);
+    onNewListChanged(turnOff);
 
 };
 
