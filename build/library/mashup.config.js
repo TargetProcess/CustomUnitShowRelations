@@ -1,1 +1,1 @@
-tau.mashups.addModule("CustomUnitShowRelations/config", {});
+tau.mashups.addModule("./config", {});
