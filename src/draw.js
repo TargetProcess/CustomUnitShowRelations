@@ -116,6 +116,7 @@ const drawRelationArrow = (relation, fromEl, toEl) => {
     const cardRect = fromEl.getBoundingClientRect();
     const targetRect = toEl.getBoundingClientRect();
     const tableRect = $table[0].getBoundingClientRect();
+    const gridRect = $grid[0].getBoundingClientRect();
 
     const cardPos = {
         x: cardRect.left - tableRect.left,
@@ -133,7 +134,7 @@ const drawRelationArrow = (relation, fromEl, toEl) => {
 
     const points = intersectRects(cardPos, targetPos);
 
-    // if list, make income relations to the left, outcome to right of card
+    // if list, make income relations to the left, outcome to right of screen
     if (viewType === 'list') {
 
         const offset = ((relation.index || 0) + 1) * 50;
@@ -145,8 +146,8 @@ const drawRelationArrow = (relation, fromEl, toEl) => {
 
         } else {
 
-            points.start.x = cardPos.x + cardPos.width - offset;
-            points.end.x = targetPos.x + targetPos.width - offset;
+            points.start.x = cardPos.x + gridRect.width - offset - 50;
+            points.end.x = targetPos.x + gridRect.width - offset - 50;
 
         }
 
@@ -264,8 +265,6 @@ const highlightCardsByRelation = (relation, options) => {
 
 const drawRelationArrows = (relation, sourceCard) => {
 
-    if (viewType === 'timeline') return null;
-
     const targetCards = getCardsByEntityId(relation.entity.id);
 
     targetCards.forEach((targetCard) => drawRelationArrow(relation, sourceCard, targetCard));
@@ -329,7 +328,8 @@ export const drawLegend = (relations, entityId, entityType) => {
 
     $legend = $(legendTemplate({
         relationTypes: existingRelationTypes,
-        showMessage: entityId && existingNames.length < relations.length,
+        showMessageHidden: entityId && existingNames.length < relations.length,
+        showMessageEmpty: !entityId && !existingNames.length,
         getRelationTypeColor
     }));
 
@@ -355,6 +355,8 @@ export const drawLegend = (relations, entityId, entityType) => {
 };
 
 export const drawRelations = (relations, sourceCard_ = null) => {
+
+    if (viewType === 'timeline') return;
 
     let processedRelations = relations
         .filter((v) => getCardsByEntityId(v.entity.id).length);
@@ -406,7 +408,7 @@ export const createSvg = () => {
 
     if (!$table.length) {
 
-        $table = $grid.find('.i-role-list-root-container');
+        $table = $grid.find('.tau-list-level-0');
         viewType = 'list';
 
     }

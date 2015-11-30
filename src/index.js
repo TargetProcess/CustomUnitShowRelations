@@ -22,10 +22,12 @@ const onBoardDestroy = (next) => {
 
 };
 
+/* eslint-disable no-unused-vars */
 const onToolbarRendered = (next) => addBusListener('board.toolbar', 'boardSettings.ready:last + afterRender:last', (e,
     {boardSettings: {settings}},
     {element: $el}
 ) => next($el, settings));
+/* eslint-enable no-unused-vars */
 
 const onNewListChanged = (next) => addBusListener('newlist', 'view.cell.skeleton.built', () => next());
 
@@ -45,6 +47,9 @@ const onModify = (next) => {
 };
 
 const onHideEmptyLines = (next) => $(document).on('click', '.i-role-hide-empty-lanes', () => next());
+
+const onExpandCollapseAxis =
+    (next) => addBusListener('board_plus', 'view.axis.collapser.executed.before', () => next());
 
 const initUnit = () => {
 
@@ -90,7 +95,7 @@ const initUnit = () => {
 
         isActivated = true;
 
-        getRelationsById(entityId)
+        $.when(getRelationsById(entityId))
             .then((relations) => {
 
                 removeAllDrawn();
@@ -119,7 +124,7 @@ const applyByCards = (cards) => {
     const cardsById = _.groupBy(cards, (card) => $(card).data('entityId'));
     const ids = Object.keys(cardsById).filter((v) => v.match(/^\d+$/));
 
-    getRelationsByIds(ids)
+    $.when(getRelationsByIds(ids))
         .then((relations_) => {
 
             const relations = relations_.filter((rel) => ids.indexOf(String(rel.entity.id)) >= 0)
@@ -210,6 +215,8 @@ const initButton = () => {
 
         if (viewMode === 'list' || viewMode === 'timeline') return;
 
+        if ($button) $button.remove();
+
         $el.find('.tau-board-view-switch').after(createButton());
         turnOff();
 
@@ -219,6 +226,7 @@ const initButton = () => {
     onModify(turnOff);
     onHideEmptyLines(turnOff);
     onNewListChanged(turnOff);
+    onExpandCollapseAxis(turnOff);
 
 };
 

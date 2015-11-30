@@ -1,3 +1,4 @@
+/* eslint global-require: 0 */
 var path = require('path');
 var webpack = require('webpack');
 
@@ -6,9 +7,9 @@ var pkg = require('./package.json');
 var TargetprocessMashupPlugin = require('targetprocess-mashup-webpack-plugin');
 var CombineAssetsPlugin = require('combine-assets-plugin');
 
-var makeWebpackConfig = function(opts) {
+var makeWebpackConfig = function(opts_) {
 
-    opts = opts || {};
+    const opts = opts_ || {};
 
     // mashup unique name
     opts.mashupName = opts.mashupName || __dirname.split(path.sep).pop();
@@ -28,18 +29,25 @@ var makeWebpackConfig = function(opts) {
     var config = {};
 
     config.entry = {
+
         // process config js module from JSON file
-        configData: ['targetprocess-mashup-config?libraryTarget=' + mashupName
-            + '&outputFile=' + outputConfigFileName + '!./src/config.json'],
+        configData: [
+            `targetprocess-mashup-config?
+                libraryTarget=${mashupName}&
+                outputFile=${outputConfigFileName}!./src/config.json`
+        ],
         // main entry point
         index: ['./src/index.js']
+
     };
 
     if (!opts.mashupManager) {
+
         // produce system configs from JSON file
         config.entry.manifestData = ['targetprocess-mashup-manifest!./src/manifest.json'];
         // prevent automatically load data from `chunks` folder, use for async load by demand
         config.entry.ignoreData = ['file?name=chunks/mashup.ignore!./src/mashup.ignore'];
+
     }
 
     config.output = {
@@ -48,7 +56,7 @@ var makeWebpackConfig = function(opts) {
         chunkFilename: 'chunks/[id].[name].js',
         pathinfo: !opts.production,
         // should be unique to prevent collision with main webpack instance
-        jsonpFunction: 'webpackJsonp_mashup_' + mashupName
+        jsonpFunction: `webpackJsonp_mashup_${mashupName}`
     };
 
     config.module = {
@@ -66,8 +74,10 @@ var makeWebpackConfig = function(opts) {
     };
 
     if (!opts.production) {
+
         config.debug = true;
         config.devtool = 'eval-source-map';
+
     }
 
     config.plugins = [
@@ -77,7 +87,7 @@ var makeWebpackConfig = function(opts) {
         new webpack.DefinePlugin({
             __DEV__: !opts.production
         }),
-        new webpack.BannerPlugin('v' + pkg.version + ' Build ' + String(new Date()), {
+        new webpack.BannerPlugin(`v${pkg.version} Build ${String(new Date())}`, {
             entryOnly: true
         })
     ];
@@ -88,11 +98,14 @@ var makeWebpackConfig = function(opts) {
         'ignoreData.js',
         'manifestData.js'
     ];
+
     if (opts.mashupManager) {
+
         toConcat = {
             'index.js': [outputConfigFileName, 'index.js']
         };
         toExclude = toExclude.concat(outputConfigFileName);
+
     }
 
     config.plugins = config.plugins.concat(new CombineAssetsPlugin({
@@ -101,18 +114,22 @@ var makeWebpackConfig = function(opts) {
     }));
 
     if (opts.mashupManager) {
+
         // produce single file index.js despite async chunks
         config.plugins = config.plugins.concat(new webpack.optimize.LimitChunkCountPlugin({
             maxChunks: 1
         }));
+
     }
 
     if (opts.production) {
+
         config.plugins = config.plugins.concat(new webpack.optimize.UglifyJsPlugin({
             compress: {
                 warnings: false
             }
         }));
+
     }
 
     config.externals = [{
@@ -126,6 +143,7 @@ var makeWebpackConfig = function(opts) {
     ];
 
     return config;
+
 };
 
 module.exports = makeWebpackConfig;

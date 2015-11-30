@@ -1,10 +1,18 @@
 <div class="mashupCustomUnitShowRelations-legend">
 
-    <% if (showMessage) { %>
+    <% if (showMessageHidden) { %>
 
         <p class="mashupCustomUnitShowRelations-legend__empty">
             The selected card has related entities that are not represented on this view.
             <br />Check the related entities in the <a class="mashupCustomUnitShowRelations-legend__link">cards details</a>.
+        </p>
+
+    <% } %>
+
+    <% if (showMessageEmpty) { %>
+
+        <p class="mashupCustomUnitShowRelations-legend__empty">
+            There is no any relations for cards represented on this view.
         </p>
 
     <% } %>
@@ -28,4 +36,3 @@
     <% } %>
 
 </div>
-

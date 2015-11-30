@@ -20,7 +20,7 @@ const getSlicesByRect = (rect) => {
         x1: rect.x,
         y1: rect.y,
         x2: rect.x + rect.width,
-        y2: rect.y,
+        y2: rect.y
     }, {
         x1: rect.x + rect.width,
         y1: rect.y,
@@ -57,20 +57,18 @@ const intersectRect = (rect, targetSlice) => {
     const rectSlices = getSlicesByRect(rect);
 
     let intersectPoint;
+    let lastPoint;
 
     rectSlices.forEach((slice) => {
 
         const point = intersectSlices(slice, targetSlice);
 
-        if (checkInSlices(point, targetSlice, slice)) {
-
-            intersectPoint = point;
-
-        }
+        lastPoint = point;
+        if (checkInSlices(point, targetSlice, slice)) intersectPoint = point;
 
     });
 
-    return intersectPoint;
+    return intersectPoint || lastPoint;
 
 };
 
