@@ -11,9 +11,14 @@ module.exports = function(config) {
         }
     };
 
-    config.set({
+    var configuration = {
 
-        browsers: ['Chrome'],
+        customLaunchers: {
+            travisChrome: {
+                base: 'Chrome',
+                flags: ['--no-sandbox']
+            }
+        },
         frameworks: ['mocha'],
 
         files: [
@@ -39,6 +44,11 @@ module.exports = function(config) {
             captureConsole: true
         }
 
-    });
+    };
+
+    if (process.env.TRAVIS) configuration.browsers = ['Chrome_travis_ci'];
+    else configuration.browsers = ['Chrome'];
+
+    config.set(configuration);
 
 };
