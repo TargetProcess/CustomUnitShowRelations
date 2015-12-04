@@ -60,6 +60,8 @@ const getRelationMarkerStartId = ({relationType}) => getRelationTypeMarkerStartI
 const getInboundRelationMarkerEndId = ({relationType}) => getInboundRelationTypeMarkerEndId(relationType);
 const getOutboundRelationMarkerEndId = ({relationType}) => getOutboundRelationTypeMarkerEndId(relationType);
 
+const isEmptyRect = ({width, height}) => !width && !height;
+
 const highlightRelationArrow = (fromEl, toEl, line) => {
 
     $grid.addClass('mashupCustomUnitShowRelations-highlighted');
@@ -117,6 +119,8 @@ const drawRelationArrow = (relation, fromEl, toEl) => {
     const targetRect = toEl.getBoundingClientRect();
     const tableRect = $table[0].getBoundingClientRect();
     const gridRect = $grid[0].getBoundingClientRect();
+
+    if (isEmptyRect(cardRect) || isEmptyRect(targetRect)) return; // sometimes cards are removed from grid on draw start
 
     const cardPos = {
         x: cardRect.left - tableRect.left,
