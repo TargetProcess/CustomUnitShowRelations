@@ -1,9 +1,9 @@
 {
   "name": "CustomUnitShowRelations",
-  "version": "0.1.0",
-  "description": "Webpack boilerplate to create Targetprocess mashup.",
+  "version": "1.0.0",
+  "description": "Show relations as arrows on a Board or List View.",
   "keywords": [
-    "webpack",
+    "relations",
     "targetprocess",
     "mashup"
   ],
@@ -11,9 +11,9 @@
   "scripts": {
     "start": "outputPath=$TARGETPROCESS_MASHUPS_PATH/$npm_package_name; rm -rf $outputPath && NODE_ENV=development webpack --watch --output-path $outputPath",
     "build": "webpack",
-    "build-production": "webpack --config webpack-production.config.js --output-path build && mv build/index.js build/release.js",
-    "build-library": "rm -rf build/library && NODE_ENV=production webpack --config webpack-library.config.js --output-path build/library --progress &&  cp src/doc/*.{mkd,png} build/library",
-    "build-all": "npm run build-production && npm run build-library",
+    "build:production": "webpack --config webpack-production.config.js --output-path build && mv build/index.js build/release.js",
+    "build:library": "rm -rf build/library && NODE_ENV=production webpack --config webpack-library.config.js --output-path build/library --progress &&  cp src/doc/*.{mkd,png} build/library",
+    "build:all": "npm run build:production && npm run build:library",
     "test": "eslint . && karma start --single-run"
   },
   "licenses": [
