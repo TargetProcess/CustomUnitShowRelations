@@ -3,6 +3,23 @@ import tsml from 'tsml';
 
 import configurator from 'tau/configurator';
 
+const loadSimple = (url, params) =>
+    $.ajax({
+        type: 'get',
+        url: url,
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
+        data: params
+    });
+
+const loadPages = (url, params) =>
+    loadSimple(url, params)
+        .then(({Items, Next}) =>
+            Next ? (loadPages(Next).then((pageItems) => Items.concat(pageItems))) : Items);
+
+const load = (resource, params) =>
+    loadPages(`${configurator.getApplicationPath()}/api/v1/${resource}`, params);
+
 export const getRelationsById = (entityId) => {
 
     const processItem = (item, type, directionType) => ({
@@ -46,15 +63,12 @@ export const getRelationsByIds = (entityIds) => {
         }
     });
 
-    return $.ajax({
-        url: tsml`${configurator.getApplicationPath()}/api/v1/relations?
-            where=Master.Id in (${entityIds.join(',')})&
-            include=[Slave[Id],Master[Id],RelationType[Name]]&
-            format=json`,
-        contentType: 'application/json; charset=utf-8'
+    return load('relations', {
+        where: `Master.Id in (${entityIds.join(',')})`,
+        include: `[Slave[Id],Master[Id],RelationType[Name]]`
     })
-    .then((res) =>
-        res.Items.map((v) => processItem(v, 'Slave', 'outbound'))
+    .then((items) =>
+        items.map((v) => processItem(v, 'Slave', 'outbound'))
     )
     .fail(() => []);
 
