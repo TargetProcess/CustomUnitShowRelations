@@ -222,7 +222,7 @@ const initButton = () => {
 
         if ($button) $button.remove();
 
-        $el.find('.tau-board-view-switch').after(createButton());
+        $el.find('.boardsettings-filter').after(createButton());
         turnOff();
 
     });
