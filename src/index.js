@@ -173,7 +173,7 @@ const initButton = () => {
     const createButton = () => {
 
         $button = $(`<button
-                class="tau-btn tau-extension-board-tooltip"
+                class="tau-btn tau-extension-board-tooltip i-role-board-tooltip"
                 type="button"
                 style="margin-left: 10px;"
                 data-title="Shows all Relations of cards on this View"
