@@ -40,13 +40,15 @@ const getSlicesByRect = (rect) => {
 
 };
 
+const isBetween = (coord, x, y) => {
+    return coord >= Math.floor(x) && coord <= Math.ceil(y);
+};
+
 const checkInSlices = (point, s1, s2) => {
-
-    const isX1 = point.x >= Math.min(s1.x1, s1.x2) && point.x <= Math.max(s1.x1, s1.x2);
-    const isX2 = point.x >= Math.min(s2.x1, s2.x2) && point.x <= Math.max(s2.x1, s2.x2);
-
-    const isY1 = point.y >= Math.min(s1.y1, s1.y2) && point.y <= Math.max(s1.y1, s1.y2);
-    const isY2 = point.y >= Math.min(s2.y1, s2.y2) && point.y <= Math.max(s2.y1, s2.y2);
+    const isX1 = isBetween(point.x, Math.min(s1.x1, s1.x2), Math.max(s1.x1, s1.x2));
+    const isX2 = isBetween(point.x, Math.min(s2.x1, s2.x2), Math.max(s2.x1, s2.x2));
+    const isY1 = isBetween(point.y, Math.min(s1.y1, s1.y2), Math.max(s1.y1, s1.y2));
+    const isY2 = isBetween(point.y, Math.min(s2.y1, s2.y2), Math.max(s2.y1, s2.y2));
 
     return isX1 && isX2 && isY1 && isY2;
 
@@ -64,7 +66,9 @@ const intersectRect = (rect, targetSlice) => {
         const point = intersectSlices(slice, targetSlice);
 
         lastPoint = point;
-        if (checkInSlices(point, targetSlice, slice)) intersectPoint = point;
+        if (checkInSlices(point, targetSlice, slice)) {
+            intersectPoint = point;
+        }
 
     });
 
