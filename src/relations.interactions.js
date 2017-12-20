@@ -2,8 +2,7 @@ import $ from 'jquery';
 import tausTrack from './relations.taus';
 
 const highlightedMode = 'mashupCustomUnitShowRelations__highlighted';
-const highlightedElement = 'mashupCustomUnitShowRelations-highlighted';
-const highlightSvgParentClass = 'mashupCustomUnitShowRelations__svg-highlighted';
+const highlightedElement = 'mashupCustomUnitShowRelations-highlighted mashupCustomUnitShowRelations__svg-highlighted';
 
 const highlightedArrowsArray = [];
 const highlightedCardsArray = [];
@@ -14,11 +13,8 @@ let clickedArrows = {};
 
 const getGrid = () => $('.i-role-grid');
 
-const highlightSvgParent = () => getGrid().addClass(highlightSvgParentClass);
-const unHighlightSvgParent = () => getGrid().removeClass(highlightSvgParentClass);
-
-const highLightGrid = () => getGrid().addClass(highlightedElement);
-const unHighLightGrid = () => getGrid().removeClass(highlightedElement);
+const highlightSvgParent = () => getGrid().addClass(highlightedElement);
+const unHighlightSvgParent = () => getGrid().removeClass(highlightedElement);
 
 const highlightArrowLines = $lines => $($lines).filter('.line').attr('class', 'line line__highlighted');
 const unHighlightArrowLines = $lines => $($lines).filter('.line').attr('class', 'line');
@@ -45,7 +41,6 @@ const highlightCardElement = (card) => {
 
     if (!cardElement.length) return;
 
-    highLightGrid();
     highlightSvgParent();
     cardElement.addClass(highlightedMode);
 
@@ -63,7 +58,6 @@ const unHighlightCardElement = (card) => {
     }
 
     if (!highlightedCardsArray.length) {
-        unHighLightGrid();
         unHighlightSvgParent();
     }
 };

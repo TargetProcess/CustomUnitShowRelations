@@ -30,12 +30,13 @@ const initialize = () => {
 
     onBoardCreate((board) => {
         createModel(RelationsDraw, board.board.boardSettings);
-        board.onCellsUpdate(() => {
-            model.redraw();
-        });
-        board.onCardDragging(() => {
-            model.redraw();
-        });
+
+        board.onCellsUpdate(model.redraw);
+        board.onCardDragging(model.redraw);
+        board.onColumnResize(model.redraw);
+        board.onPagingAnimated(model.redraw);
+        board.onZoomLevelChanged(model.redraw);
+        board.onExpandCollapseAxis(model.redraw);
     });
 
     onTimelineCreate((timeline) => {
@@ -98,9 +99,7 @@ const initialize = () => {
 };
 
 const initializeSubsriptions = () => {
-    subscriptions.onZoomLevelChanged(() => model.redraw());
     subscriptions.onHideEmptyLines(() => model.redraw());
-    subscriptions.onExpandCollapseAxis(() => model.redraw());
 };
 
 initialize();

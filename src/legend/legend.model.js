@@ -2,6 +2,7 @@ import _ from 'underscore';
 import viewModes from '../const.view.modes';
 import React from 'react';
 import relationTypes from '../relationTypes';
+import legendOnboarding from './legend.onboarding';
 import RestStorage from 'tau/storage/api.nocache';
 import actionsIntegration from 'tau/api/actions/v1';
 import tausTrack from '../relations.taus';
@@ -25,11 +26,17 @@ export default class LegendModel {
 
         this.initializeSubscriptions();
         this.setInitialData(boardSettings);
-        this.loadSettings().then(() => this.refresh());
+        legendOnboarding.setRestStorage(this.restStorage);
+        legendOnboarding.loadOnboardingSettings().then((metadata) => {
+            this.metadata = metadata;
+            return this.loadSettings();
+        }).then(() => this.refresh());
     }
 
     initializeSubscriptions() {
-        actionsIntegration.onShow(() => this.refresh());
+        actionsIntegration.onShow(() => {
+            this.refresh();
+        });
     }
 
     setInitialData(boardSettings) {
@@ -45,6 +52,7 @@ export default class LegendModel {
             onUpdateLegend: onUpdateLegend,
             isExpanded: this.isShown,
             relations: this.relations,
+            metadata: this.metadata,
             onExpansionStateChange: this.changeShowState,
             onRelationTypeSelect: this.changeRelationTypes
         };
@@ -65,6 +73,10 @@ export default class LegendModel {
             name: isShown ? 'show' : 'hide'
         });
         this.isShown = isShown;
+        if (this.isShown === true && !this.metadata.isRelationsFeatureUsed) {
+            this.metadata.isRelationsFeatureUsed = true;
+            legendOnboarding.update(this.metadata);
+        }
         this.saveToStorage();
         this.refresh();
     };
@@ -73,6 +85,7 @@ export default class LegendModel {
         this.restStorage.data(REST_STORAGE_GROUP_NAME, this._userKey, {
             relations: JSON.stringify({
                 expanded: this.isShown,
+                metadata: this.metadata,
                 relations: this.relations.map((r) => {
                     return {name: r.name, show: r.show};
                 })
@@ -116,6 +129,7 @@ export default class LegendModel {
         } else {
             this.relationsDrawer.redraw();
         }
+        legendOnboarding.refresh();
         onUpdateLegend.fire(this.data());
     }
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import classnames from 'libs/classNames';
 import labels from './component.legend.labels';
+import legendOnboarding from './legend.onboarding';
 import LegendRelations from './component.legend.relations.jsx';
 
 export default class ComponentLegend extends React.Component {
@@ -10,12 +11,26 @@ export default class ComponentLegend extends React.Component {
 
     render() {
         const {isExpanded} = this.props;
-        const buttonCssClass = classnames({
+
+        const classConfig = {
             'tau-btn': true,
             'i-role-show-relations': true,
             'i-role-board-tooltip': true,
             'tau-checked': isExpanded
-        });
+        };
+
+        const labelClassConfig = {
+            'board-actions__item__text': true
+        };
+
+        const newFeatureClass = legendOnboarding.getClassForLegendControl();
+
+        if (newFeatureClass.length > 0) {
+            labelClassConfig[newFeatureClass] = true;
+        }
+
+        const buttonCssClass = classnames(classConfig);
+        const labelCssClass = classnames(labelClassConfig);
 
         const buttonTitle = isExpanded ? labels.BUTTON_TITLE_EXPANDED : labels.BUTTON_TITLE_COLLAPSED;
         const buttonText = isExpanded ? labels.BUTTON_TEXT_EXPANDED : labels.BUTTON_TEXT_COLLAPSED;
@@ -27,7 +42,7 @@ export default class ComponentLegend extends React.Component {
         return <div
             className="board-actions__group board-actions__group--controls board-actions__group--visual-encoding i-role-board-actions-group">
             <div className="board-actions__item board-actions__item--two-column action-show-relations">
-                <span className="board-actions__item__text">Relations</span>
+                <span className={labelCssClass}>Relations</span>
 
                 <div className="board-actions__item__control">
                     <button onClick={this.onClick} type="button"
