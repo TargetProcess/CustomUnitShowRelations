@@ -1,26 +1,22 @@
 /* eslint global-require: 0 */
-var path = require('path');
-var webpack = require('webpack');
+const path = require('path');
+const webpack = require('webpack');
 
-var pkg = require('./package.json');
+const pkg = require('../package.json');
+const TargetprocessMashupPlugin = require('targetprocess-mashup-webpack-plugin');
+const CombineAssetsPlugin = require('combine-assets-plugin');
 
-var TargetprocessMashupPlugin = require('targetprocess-mashup-webpack-plugin');
-var CombineAssetsPlugin = require('combine-assets-plugin');
+var createConfig = function(opts_) {
 
-var makeWebpackConfig = function(opts_) {
+    const opts = Object.assign({
+        mashupName: pkg.name,
+        production: false,
+        mashupManager: false
+    }, opts_);
 
-    const opts = opts_ || {};
 
     // mashup unique name
-    opts.mashupName = opts.mashupName || __dirname.split(path.sep).pop();
-
-    // minimize output and prevent dev tools
-    opts.production = opts.hasOwnProperty('production') ? opts.production : false;
-
-    // will mashup be used by paste to mashup manager or as bunch of files by library
-    opts.mashupManager = opts.hasOwnProperty('mashupManager') ? opts.mashupManager : true;
-
-    var mashupName = opts.mashupName;
+    const mashupName = opts.mashupName || __dirname.split(path.sep).pop();
 
     // you should use format <something>.config.js to allow Mashup Manager autodiscover
     // config file
@@ -29,7 +25,6 @@ var makeWebpackConfig = function(opts_) {
     var config = {};
 
     config.entry = {
-
         // process config js module from JSON file
         configData: [
             `targetprocess-mashup-config` +
@@ -59,22 +54,32 @@ var makeWebpackConfig = function(opts_) {
     };
 
     config.module = {
-        loaders: [{
-            test: /\.js$/,
-            loader: 'babel-loader',
-            exclude: /node_modules/
-        }, {
-            test: /\.css$/,
-            loader: 'style!css!postcss?parser=postcss-scss'
-        }, {
-            test: /\.html$/,
-            loader: 'underscore-template'
-        }]
+        loaders: [
+            {
+                test: /\.js$/,
+                loader: 'babel-loader',
+                exclude: /node_modules/
+            },
+            {
+                test: /\.css$/,
+                loader: 'style!css!postcss?parser=postcss-scss'
+            },
+            {
+                test: /\.html$/,
+                loader: 'underscore-template'
+            },
+            {
+                test: /.jsx?$/,
+                loader: 'babel-loader',
+                exclude: /node_modules/
+            }]
     };
 
     if (!opts.production) {
+
         config.debug = true;
         config.devtool = 'eval-source-map';
+
     }
 
     config.plugins = [
@@ -82,8 +87,13 @@ var makeWebpackConfig = function(opts_) {
             useConfig: true
         }),
         new webpack.DefinePlugin({
-            __DEV__: !opts.production
+            '__DEV__': process.env.NODE_ENV !== 'production',
+            '__PRODUCTION__': process.env.NODE_ENV === 'production',
+            'process.env': {
+                NODE_ENV: JSON.stringify(process.env.NODE_ENV)
+            }
         }),
+
         new webpack.BannerPlugin(`v${pkg.version} Build ${String(new Date())}`, {
             entryOnly: true
         })
@@ -97,10 +107,10 @@ var makeWebpackConfig = function(opts_) {
     ];
 
     if (opts.mashupManager) {
+
         toConcat = {
             'index.js': [outputConfigFileName, 'index.js']
         };
-        toExclude = toExclude.concat(outputConfigFileName);
     }
 
     config.plugins = config.plugins.concat(new CombineAssetsPlugin({
@@ -118,19 +128,29 @@ var makeWebpackConfig = function(opts_) {
     }
 
     if (opts.production) {
-
         config.plugins = config.plugins.concat(new webpack.optimize.UglifyJsPlugin({
             compress: {
+                properties: false,
                 warnings: false
+            },
+            output: {
+                keep_quoted_props: true // eslint-disable-line camelcase
             }
         }));
-
     }
 
-    config.externals = [{
-        jquery: 'jQuery',
-        underscore: 'Underscore'
-    }, 'jQuery', 'Underscore', /^tp3\//, /^tau\//, /^tp\//];
+    config.externals = [
+        'jQuery',
+        'react',
+        'tau-intl',
+        /^libs\//,
+        {jquery: 'jQuery'},
+        'Underscore',
+        {underscore: 'Underscore'},
+        /^tp3\//,
+        /^tau\//,
+        /^tp\//
+    ];
 
     config.postcss = [
         require('postcss-nested'),
@@ -141,4 +161,4 @@ var makeWebpackConfig = function(opts_) {
 
 };
 
-module.exports = makeWebpackConfig;
+module.exports = createConfig;

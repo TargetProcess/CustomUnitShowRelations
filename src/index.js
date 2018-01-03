@@ -1,239 +1,105 @@
 import $ from 'jquery';
-import _ from 'underscore';
-
-import {addBusListener} from 'targetprocess-mashup-helper/lib/events';
-
-import {getRelationsById, getRelationsByIds} from './data';
-import {drawLegend, drawRelations, highlightCardsByRelations, removeAllDrawn, createSvg} from './draw';
+import {onBoardCreate, onTimelineCreate, onListCreate, onDetailsCreate} from 'tau/api/board/v1';
+import * as subscriptions from './bus.subscriptions';
+import RelationsDraw from './relations.draw';
+import RelationsDrawTimeline from './relations.draw.timeline';
+import RelationsDrawList from './relations.draw.list';
+import Model from './relations.draw.model';
 
 import './index.css';
 
-const onBoardInitialize = (next) => {
-
-    addBusListener('board_plus', 'initialize', ({data: {viewMode}}) => next({viewMode}));
-    addBusListener('newlist', 'initialize', () => next({viewMode: 'newlist'}));
-
+let model = {
+    isEmpty: true,
+    redraw: $.noop,
+    setConfig: $.noop
 };
 
-const onBoardDestroy = (next) => {
-
-    addBusListener('board_plus', 'destroy', () => next());
-    addBusListener('newlist', 'destroy', () => next());
-
+const createModel = (RelationsDrawConstructor, boardSettings) => {
+    if (model.isEmpty) {
+        model = new Model(RelationsDrawConstructor, boardSettings);
+    } else {
+        model.setConfig(RelationsDrawConstructor, boardSettings);
+    }
 };
 
-/* eslint-disable no-unused-vars */
-const onToolbarRendered = (next) => addBusListener('board.toolbar', 'boardSettings.ready:last + afterRender:last', (e,
-    {boardSettings: {settings}},
-    {element: $el}
-) => next($el, settings));
-/* eslint-enable no-unused-vars */
-
-const onNewListChanged = (next) => addBusListener('newlist', 'view.cell.skeleton.built', () => next());
-
-const onUnitClick = (next) => $(document.body).on('click', '.tau-board-unit_type_relations-counter-in-out', next);
-
-const onZoomLevelChanged = (next) => {
-
-    addBusListener('board_plus', 'model.zoomLevelChanged', () => next());
-
-};
-
-const onModify = (next) => {
-
-    addBusListener('board_plus', 'boardSettings.ready', () => next());
-    addBusListener('newlist', 'boardSettings.ready', () => next());
-
-};
-
-const onHideEmptyLines = (next) => $(document).on('click', '.i-role-hide-empty-lanes', () => next());
-
-const onExpandCollapseAxis =
-    (next) => addBusListener('board_plus', 'view.axis.collapser.executed.before', () => next());
-
-const initUnit = () => {
-
-    let isEnabled = true;
-    let isActivated = false;
-
-    onBoardInitialize(() => {
-
-        isEnabled = true;
-
+const initialize = () => {
+    onDetailsCreate((details) => {
+        createModel(RelationsDraw, details.boardSettings);
     });
 
-    onBoardDestroy(() => {
+    onBoardCreate((board) => {
+        createModel(RelationsDraw, board.board.boardSettings);
 
-        isEnabled = false;
-
+        board.onCellsUpdate(model.redraw);
+        board.onCardDragging(model.redraw);
+        board.onColumnResize(model.redraw);
+        board.onPagingAnimated(model.redraw);
+        board.onZoomLevelChanged(model.redraw);
+        board.onExpandCollapseAxis(model.redraw);
     });
 
-    onUnitClick((e) => {
+    onTimelineCreate((timeline) => {
+        const timelineEvents = timeline.events;
 
-        if (!isEnabled) return;
+        timelineEvents.onRender.once(() => {
+            createModel(RelationsDrawTimeline, timeline.boardSettings);
 
-        e.stopPropagation();
-        e.preventDefault();
-
-        const $card = $(e.target).parents('.i-role-card');
-        const card = $card[0];
-
-        const entityId = $card.data('entityId');
-        const entityType = $card.data('entityType');
-
-        if (!entityId) return;
-
-        // on timelines backlog, svg is not over it, so disable
-        if (isActivated) {
-
-            removeAllDrawn();
-            isActivated = false;
-
-            return;
-
-        }
-
-        isActivated = true;
-
-        $.when(getRelationsById(entityId))
-            .then((relations) => {
-
-                removeAllDrawn();
-
-                const $svg = createSvg();
-
-                drawRelations(relations, card);
-                highlightCardsByRelations(relations, card);
-                drawLegend(relations, entityId, entityType);
-
-                $svg.on('click', () => {
-
-                    isActivated = false;
-                    removeAllDrawn();
-
-                });
-
+            $('.tau-timeline-canvas').scroll((evt) => {
+                model.update({y: evt.target.scrollTop});
+            });
+            $(window).resize(() => {
+                model.update();
             });
 
-    });
-
-};
-
-const applyByCards = (cards) => {
-
-    const cardsById = _.groupBy(cards, (card) => $(card).data('entityId'));
-    const ids = Object.keys(cardsById).filter((v) => v.match(/^\d+$/));
-
-    $.when(getRelationsByIds(ids))
-        .then((relations_) => {
-
-            const relations = relations_.filter((rel) => ids.indexOf(String(rel.entity.id)) >= 0)
-                .map((v, k) => ({index: k, ...v}));
-            const groupedRelations = _.groupBy(relations, (rel) => rel.main.id);
-
-            Object.keys(groupedRelations)
-            .forEach((entityId) => {
-
-                const entityRelations = groupedRelations[entityId];
-                const entityCards = cardsById[entityId];
-
-                entityCards.forEach((card) => {
-
-                    drawRelations(entityRelations, card);
-                    highlightCardsByRelations(entityRelations, card, {outline: false});
-
-                });
-
+            timelineEvents.onCellUpdated.add(() => {
+                model.redraw();
             });
 
-            drawLegend(relations);
+            timelineEvents.onMoveCardToCell.add(() => {
+                model.redraw();
+            });
 
+            timelineEvents.onRender.add(() => {
+                model.redraw();
+            });
+            timelineEvents.onLocalDateRangeChanged.add(() => {
+                model.redraw();
+            });
+            timelineEvents.onViewTimelineTracksCountChanged.add(() => {
+                model.redraw();
+            });
+            timelineEvents.onPlannedDatesUpdating.add(($card) => {
+                model.updateRelationsForCard($card.data('id'));
+            });
         });
-
-};
-
-const getCards = () => $('.i-role-grid .i-role-card').toArray();
-
-const initButton = () => {
-
-    let isEnabled = false;
-    const enabledText = 'Hide Relations';
-    const disabledText = 'Show Relations';
-
-    let $button;
-
-    const turnOff = () => {
-
-        isEnabled = false;
-        if ($button) $button.text(disabledText);
-        removeAllDrawn();
-
-    };
-
-    const createButton = () => {
-
-        $button = $(`<button
-                class="tau-btn tau-extension-board-tooltip i-role-board-tooltip"
-                type="button"
-                style="margin-left: 10px;"
-                data-title="Shows all Relations of cards on this View"
-        />`);
-
-        $button.on('click', () => {
-
-            isEnabled = !isEnabled;
-
-            if (isEnabled) {
-
-                $button.text(enabledText);
-                $.when(getCards()).then((cards) => {
-
-                    removeAllDrawn();
-
-                    const $svg = createSvg();
-
-                    applyByCards(cards);
-
-                    $svg.on('click', () => {
-
-                        removeAllDrawn();
-                        isEnabled = false;
-                        $button.text(disabledText);
-
-                    });
-
-                });
-
-            } else {
-
-                turnOff();
-
-            }
-
-        });
-
-        return $button;
-
-    };
-
-    onToolbarRendered(($el, {viewMode}) => {
-
-        if (viewMode === 'list' || viewMode === 'timeline') return;
-
-        if ($button) $button.remove();
-
-        $el.find('.boardsettings-filter').after(createButton());
-        turnOff();
 
     });
 
-    onZoomLevelChanged(turnOff);
-    onModify(turnOff);
-    onHideEmptyLines(turnOff);
-    onNewListChanged(turnOff);
-    onExpandCollapseAxis(turnOff);
+    onListCreate((list) => {
+        const listEvents = list.events;
 
+        listEvents.onTreeRendered.once(() => {
+            createModel(RelationsDrawList, list.boardSettings);
+
+            listEvents.onTreeRendered.add(() => {
+                model.redraw();
+            });
+            listEvents.onTreeChanged.add(() => {
+                model.redraw();
+            });
+            listEvents.onCardDragging.add((card) => {
+                model.updateRelationsForCard(card.data('id'));
+            });
+            listEvents.onExpansionStateChanged.add(() => {
+                model.redraw();
+            });
+        });
+    });
 };
 
-initUnit();
-initButton();
+const initializeSubsriptions = () => {
+    subscriptions.onHideEmptyLines(() => model.redraw());
+};
+
+initialize();
+initializeSubsriptions();
