@@ -17,8 +17,7 @@ let model = {
 const createModel = (RelationsDrawConstructor, boardSettings) => {
     if (model.isEmpty) {
         model = new Model(RelationsDrawConstructor, boardSettings);
-    }
-    else {
+    } else {
         model.setConfig(RelationsDrawConstructor, boardSettings);
     }
 };
