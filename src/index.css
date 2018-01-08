@@ -27,6 +27,47 @@
         }
     }
 
+    &.tau-board-list-view {
+        .i-role-card {
+            opacity: 1 !important;
+            transition: none !important;
+            height: 0;
+            padding-bottom: 33px;
+            background-clip: content-box;
+        }
+
+        .tau-list-line {
+            opacity: 0.3;
+            transition: opacity 300ms cubic-bezier(0.4, 0.0, 0.2, 1) 200ms;
+            background: inherit;
+        }
+
+        .mashupCustomUnitShowRelations__related,
+        .mashupCustomUnitShowRelations__source {
+            z-index: auto !important;
+        }
+
+        .mashupCustomUnitShowRelations__related .tau-list-line,
+        .mashupCustomUnitShowRelations__source .tau-list-line {
+            transition: opacity 100ms cubic-bezier(0.4, 0.0, 0.2, 1) !important;
+            opacity: 1 !important;
+            z-index: 9;
+            position: relative;
+        }
+
+        .mashupCustomUnitShowRelations-highlighted {
+            .mashupCustomUnitShowRelations__related .tau-list-line,
+            .mashupCustomUnitShowRelations__source .tau-list-line {
+                transition: opacity 300ms cubic-bezier(0.4, 0.0, 0.2, 1) 200ms !important;
+                opacity: 0.3 !important;
+            }
+            .mashupCustomUnitShowRelations__highlighted .tau-list-line {
+                transition: opacity 100ms cubic-bezier(0.4, 0.0, 0.2, 1) !important;
+                opacity: 1 !important;
+            }
+        }
+    }
+
     &-legend {
         position: absolute;
         top: 0;
