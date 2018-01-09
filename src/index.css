@@ -161,8 +161,8 @@
         color: #89b923;
         content: 'NEW';
         position: relative;
-        top: -4px;
-        left: 4px;
+        top: -3px;
+        left: 2px;
 }
 
 .tau-app-main-pane.new-feature-label:after {
