@@ -156,7 +156,7 @@
     cursor: pointer !important;
 }
 
-.new-feature-label .tau-actions-btn:after {
+.new-feature-label .tau-board:not(.i-role-dashboard-page):not(.i-role-customReport-container) .tau-actions-btn:after {
         font-size: 9px;
         color: #89b923;
         content: 'NEW';
