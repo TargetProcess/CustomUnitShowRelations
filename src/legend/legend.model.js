@@ -2,7 +2,6 @@ import _ from 'underscore';
 import viewModes from '../const.view.modes';
 import React from 'react';
 import relationTypes from '../relationTypes';
-import legendOnboarding from './legend.onboarding';
 import RestStorage from 'tau/storage/api.nocache';
 import actionsIntegration from 'tau/api/actions/v1';
 import tausTrack from '../relations.taus';
@@ -26,11 +25,8 @@ export default class LegendModel {
 
         this.initializeSubscriptions();
         this.setInitialData(boardSettings);
-        legendOnboarding.setRestStorage(this.restStorage);
-        legendOnboarding.loadOnboardingSettings().then((metadata) => {
-            this.metadata = metadata;
-            return this.loadSettings();
-        }).then(() => this.refresh());
+
+        this.loadSettings().then(() => this.refresh());
     }
 
     initializeSubscriptions() {
@@ -73,10 +69,6 @@ export default class LegendModel {
             name: isShown ? 'show' : 'hide'
         });
         this.isShown = isShown;
-        if (this.isShown === true && !this.metadata.isRelationsFeatureUsed) {
-            this.metadata.isRelationsFeatureUsed = true;
-            legendOnboarding.update(this.metadata);
-        }
         this.saveToStorage();
         this.refresh();
     };
@@ -129,7 +121,6 @@ export default class LegendModel {
         } else {
             this.relationsDrawer.redraw();
         }
-        legendOnboarding.refresh();
         onUpdateLegend.fire(this.data());
     }
 

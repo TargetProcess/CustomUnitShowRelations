@@ -1,7 +1,6 @@
 import React from 'react';
 import classnames from 'libs/classNames';
 import labels from './component.legend.labels';
-import legendOnboarding from './legend.onboarding';
 import LegendRelations from './component.legend.relations.jsx';
 
 export default class ComponentLegend extends React.Component {
@@ -22,12 +21,6 @@ export default class ComponentLegend extends React.Component {
         const labelClassConfig = {
             'board-actions__item__text': true
         };
-
-        const newFeatureClass = legendOnboarding.getClassForLegendControl();
-
-        if (newFeatureClass.length > 0) {
-            labelClassConfig[newFeatureClass] = true;
-        }
 
         const buttonCssClass = classnames(classConfig);
         const labelCssClass = classnames(labelClassConfig);
