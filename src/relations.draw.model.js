@@ -36,7 +36,7 @@ export default class RelationsDrawModel {
             delete this.relationsDraw;
         }
         if (this.legendModel) {
-            this.legendModel.destroy();
+            this.legendModel.cleanup();
             delete this.legendModel;
         }
         this.dataFetcher.subscribeForRelationsUpdate();

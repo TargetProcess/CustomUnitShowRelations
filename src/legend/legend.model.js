@@ -116,15 +116,17 @@ export default class LegendModel {
     }
 
     refresh() {
-        if (this.isShown === false) {
-            this.relationsDrawer.removeAll();
-        } else {
-            this.relationsDrawer.redraw();
+        if (this.relationsDrawer) {
+            if (this.isShown === false) {
+                this.relationsDrawer.removeAll();
+            } else {
+                this.relationsDrawer.redraw();
+            }
+            onUpdateLegend.fire(this.data());
         }
-        onUpdateLegend.fire(this.data());
     }
 
-    destroy() {
+    cleanup() {
         actionsIntegration.unbind();
         delete this.relationsDrawer;
     }
