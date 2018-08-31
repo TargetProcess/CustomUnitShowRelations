@@ -125,7 +125,7 @@ export default class RelationsDraw {
     }
 
     _getElementSelectFunction = (id, el) => () => _.first((this.cardsByEntityId[id] || [])
-        .filter(c => _.isEqual(
+        .filter((c) => _.isEqual(
             JSON.parse(c.dataset.dataItem).coords || '',
             JSON.parse(el.dataset.dataItem).coords || ''
         )));
@@ -153,7 +153,7 @@ export default class RelationsDraw {
     }
 
     _isValidPoints(points) {
-        return !_.some([points.start.x, points.start.y, points.end.x, points.end.y], p => _.isNaN(p));
+        return !_.some([points.start.x, points.start.y, points.end.x, points.end.y], (p) => _.isNaN(p));
     }
 
     _createLine(options) {
@@ -171,7 +171,9 @@ export default class RelationsDraw {
         const {cardRect, targetRect, tableRect, gridRect} = this._getClientRects(fromEl, toEl);
 
         // sometimes cards are removed from grid on draw start
-        if (isEmptyRect(cardRect) || isEmptyRect(targetRect)) return;
+        if (isEmptyRect(cardRect) || isEmptyRect(targetRect)) {
+            return;
+        }
 
         const {
             main: {id: main},
@@ -214,7 +216,6 @@ export default class RelationsDraw {
             if (directionType === relationDirection.inbound) {
                 line.setAttributeNS(null, 'marker-start', `url(#${relationUtils.getInboundRelationTypeMarkerEndId(relation.relationType)})`);
                 line.setAttributeNS(null, 'marker-end', `url(#${relationUtils.getRelationTypeMarkerStartId(relation.relationType)})`);
-
             } else {
                 line.setAttributeNS(null, 'marker-start', `url(#${relationUtils.getRelationTypeMarkerStartId(relation.relationType)})`);
                 line.setAttributeNS(null, 'marker-end', `url(#${relationUtils.getOutboundRelationTypeMarkerEndId(relation.relationType)})`);
@@ -283,7 +284,9 @@ export default class RelationsDraw {
 
             this.getAndSaveRelations()
                 .then(() => {
-                    if (!this.$svg) return;
+                    if (!this.$svg) {
+                        return;
+                    }
 
                     this.applyRelationsAndCards([
                         this._getDrawRelationsForCard(),

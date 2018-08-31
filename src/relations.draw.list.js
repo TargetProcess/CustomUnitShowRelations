@@ -20,7 +20,6 @@ export default class RelationsDrawList extends RelationsDraw {
 
     _getIntersectionPoints(cardPos, targetPos, gridRect, relation) {
         if (Math.abs(targetPos.y - cardPos.y) > 20) {
-
             const points = intersectRects(cardPos, targetPos);
 
             // if list, make income relations to the left, outcome to right of screen
@@ -30,7 +29,6 @@ export default class RelationsDrawList extends RelationsDraw {
             if (relation.directionType === relationDirection.inbound) {
                 points.start.x = cardPos.x + offset;
                 points.end.x = targetPos.x + offset;
-
             } else {
                 points.start.x = cardPos.x + gridRect.width - offset - 50;
                 points.end.x = targetPos.x + gridRect.width - offset - 50;
@@ -38,11 +36,11 @@ export default class RelationsDrawList extends RelationsDraw {
 
             if (points.start.y === points.end.y) {
                 if (targetPos.y > cardPos.y) {
-                    points.start.y = points.start.y - 5;
-                    points.end.y = points.end.y + 5;
+                    points.start.y -= 5;
+                    points.end.y += 5;
                 } else {
-                    points.start.y = points.start.y + 5;
-                    points.end.y = points.end.y - 5;
+                    points.start.y += 5;
+                    points.end.y -= 5;
                 }
             }
 

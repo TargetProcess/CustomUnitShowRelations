@@ -8,7 +8,7 @@ const highlightedArrowsArray = [];
 const highlightedCardsArray = [];
 let arrows = [];
 let cardsByEntityId = [];
-let viewMode;
+let viewMode = null;
 let clickedArrows = {};
 
 const getGrid = () => $('.i-role-grid');
@@ -16,10 +16,10 @@ const getGrid = () => $('.i-role-grid');
 const highlightSvgParent = () => getGrid().addClass(highlightedElement);
 const unHighlightSvgParent = () => getGrid().removeClass(highlightedElement);
 
-const highlightArrowLines = $lines => $($lines).filter('.line').attr('class', 'line line__highlighted');
-const unHighlightArrowLines = $lines => $($lines).filter('.line').attr('class', 'line');
+const highlightArrowLines = ($lines) => $($lines).filter('.line').attr('class', 'line line__highlighted');
+const unHighlightArrowLines = ($lines) => $($lines).filter('.line').attr('class', 'line');
 
-const getArrowsLinesByIds = id => arrows.filter(({arrowId}) => arrowId === id).map(({$lines}) => $lines);
+const getArrowsLinesByIds = (id) => arrows.filter(({arrowId}) => arrowId === id).map(({$lines}) => $lines);
 
 const highlightArrows = (arrowsId) => {
     if (highlightedArrowsArray.indexOf(arrowsId) === -1) {
@@ -39,7 +39,9 @@ const unHighlightArrows = (arrowsId) => {
 const highlightCardElement = (card) => {
     const cardElement = $(card);
 
-    if (!cardElement.length) return;
+    if (!cardElement.length) {
+        return;
+    }
 
     highlightSvgParent();
     cardElement.addClass(highlightedMode);
@@ -132,7 +134,9 @@ export const updateInteractionsData = (cardsByEntityId_, arrows_, viewMode_) => 
     viewMode = viewMode_;
 
     getGrid().on('mousedown.highlights', ({target}) => {
-        if ($(target).parents().hasClass('i-role-card')) return;
+        if ($(target).parents().hasClass('i-role-card')) {
+            return;
+        }
 
         tausTrack({
             name: 'reset-highlights'

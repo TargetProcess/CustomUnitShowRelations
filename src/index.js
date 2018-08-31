@@ -72,7 +72,6 @@ const initialize = () => {
                 model.updateRelationsForCard($card.data('id'));
             });
         });
-
     });
 
     onListCreate((list) => {

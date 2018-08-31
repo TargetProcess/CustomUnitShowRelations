@@ -16,7 +16,7 @@ const loadSimple = (url, params) =>
 const loadPages = (url, params) =>
     loadSimple(url, params)
         .then(({Items, Next}) =>
-            Next ? (loadPages(Next).then((pageItems) => Items.concat(pageItems))) : Items);
+            (Next ? (loadPages(Next).then((pageItems) => Items.concat(pageItems))) : Items));
 
 const load = (resource, params) =>
     loadPages(`${globalConfigurator.getApplicationPath()}/api/v1/${resource}`, params);
@@ -63,28 +63,27 @@ export default class RelationsData {
     load(entityIds) {
         if (_.intersection(entityIds, this.entityIds).length === entityIds.length) {
             return Promise.resolve(this.getRelationsFiltered());
-        } else {
+        }
             this.entityIds = entityIds;
             return this._getRelationsByIdsInternal(entityIds).then((relations) => this._relations = relations)
                 .then(() => this.getRelationsFiltered());
-        }
     }
 
     refresh() {
-        return this._getRelationsByIdsInternal(this._relations.map(r => r.entity.id));
+        return this._getRelationsByIdsInternal(this._relations.map((r) => r.entity.id));
     }
 
     setFilterConfig(config) {
-        this.filterConfig = config.filter(c => c.show)
-            .map(relationType => relationTypes.filter(r => r.name === relationType.name)[0].name);
+        this.filterConfig = config.filter((c) => c.show)
+            .map((relationType) => relationTypes.filter((r) => r.name === relationType.name)[0].name);
     }
 
     getRelationsFiltered() {
-        return this._relations.filter(r => this.filterConfig.some(c => c === r.relationType.name));
+        return this._relations.filter((r) => this.filterConfig.some((c) => c === r.relationType.name));
     }
 
     getRelationsByIds(entityIds) {
-        return this._relations.filter(r => entityIds.some(r.entity.id));
+        return this._relations.filter((r) => entityIds.some(r.entity.id));
     }
 
     _onRelationsChanged() {

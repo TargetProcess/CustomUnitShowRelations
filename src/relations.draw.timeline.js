@@ -44,8 +44,9 @@ export default class RelationsDrawTimeline extends RelationsDraw {
 
             if (sectionTypes.length > 1 && !hasBacklog) {
                 cards[key] = groupedCards[key].filter((card) => card.sectionType === 'actual');
+            } else {
+                cards[key] = groupedCards[key];
             }
-            else cards[key] = groupedCards[key];
             return cards;
         }, {});
     }
@@ -63,7 +64,7 @@ export default class RelationsDrawTimeline extends RelationsDraw {
         };
     }
 
-    _getIntersectionPoints(cardPos, targetPos, gridRect, relation) {
+    _getIntersectionPoints(cardPos, targetPos) {
         const points = intersectRects(cardPos, targetPos);
 
         if (Math.abs(points.start.x - points.end.x) < 10) {

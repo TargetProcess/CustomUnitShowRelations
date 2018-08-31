@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import $ from 'jquery';
 import LegendModel from './legend/legend.model';
 import RelationsData from './data';
 

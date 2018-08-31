@@ -3,9 +3,7 @@ import {expect} from 'chai';
 import {intersectRects} from '../intersection';
 
 describe('intersection', () => {
-
     it('returns points of closest slice between two rects', () => {
-
         const rect1 = {
             x: 10,
             y: 10,
@@ -31,7 +29,5 @@ describe('intersection', () => {
                     y: 25
                 }
             });
-
     });
-
 });

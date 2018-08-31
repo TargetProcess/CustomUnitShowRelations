@@ -1,4 +1,3 @@
-/* eslint global-require: 0 */
 const path = require('path');
 const webpack = require('webpack');
 
@@ -6,8 +5,7 @@ const pkg = require('../package.json');
 const TargetprocessMashupPlugin = require('targetprocess-mashup-webpack-plugin');
 const CombineAssetsPlugin = require('combine-assets-plugin');
 
-var createConfig = function(opts_) {
-
+function createConfig (opts_) {
     const opts = Object.assign({
         mashupName: pkg.name,
         production: false,
@@ -20,9 +18,9 @@ var createConfig = function(opts_) {
 
     // you should use format <something>.config.js to allow Mashup Manager autodiscover
     // config file
-    var outputConfigFileName = './mashup.config.js';
+    const outputConfigFileName = './mashup.config.js';
 
-    var config = {};
+    const config = {};
 
     config.entry = {
         // process config js module from JSON file
@@ -36,12 +34,10 @@ var createConfig = function(opts_) {
     };
 
     if (!opts.mashupManager) {
-
         // produce system configs from JSON file
         config.entry.manifestData = ['targetprocess-mashup-manifest!./src/manifest.json'];
         // prevent automatically load data from `chunks` folder, use for async load by demand
         config.entry.ignoreData = ['file?name=chunks/mashup.ignore!./src/mashup.ignore'];
-
     }
 
     config.output = {
@@ -76,10 +72,8 @@ var createConfig = function(opts_) {
     };
 
     if (!opts.production) {
-
         config.debug = true;
         config.devtool = 'eval-source-map';
-
     }
 
     config.plugins = [
@@ -99,15 +93,14 @@ var createConfig = function(opts_) {
         })
     ];
 
-    var toConcat = {};
-    var toExclude = [
+    let toConcat = {};
+    const toExclude = [
         'configData.js',
         'ignoreData.js',
         'manifestData.js'
     ];
 
     if (opts.mashupManager) {
-
         toConcat = {
             'index.js': [outputConfigFileName, 'index.js']
         };
@@ -119,12 +112,10 @@ var createConfig = function(opts_) {
     }));
 
     if (opts.mashupManager) {
-
         // produce single file index.js despite async chunks
         config.plugins = config.plugins.concat(new webpack.optimize.LimitChunkCountPlugin({
             maxChunks: 1
         }));
-
     }
 
     if (opts.production) {
@@ -158,7 +149,6 @@ var createConfig = function(opts_) {
     ];
 
     return config;
-
-};
+}
 
 module.exports = createConfig;

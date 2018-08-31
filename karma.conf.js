@@ -1,6 +1,5 @@
 module.exports = function(config) {
-
-    var webpackConfig = {
+    const webpackConfig = {
         devtool: '#cheap-module-inline-source-map',
         module: {
             loaders: [{
@@ -11,7 +10,7 @@ module.exports = function(config) {
         }
     };
 
-    var configuration = {
+    const configuration = {
 
         customLaunchers: {
             travisChrome: {
@@ -46,9 +45,11 @@ module.exports = function(config) {
 
     };
 
-    if (process.env.TRAVIS) configuration.browsers = ['travisChrome'];
-    else configuration.browsers = ['Chrome'];
+    if (process.env.TRAVIS) {
+        configuration.browsers = ['travisChrome'];
+    } else {
+        configuration.browsers = ['Chrome'];
+    }
 
     config.set(configuration);
-
 };

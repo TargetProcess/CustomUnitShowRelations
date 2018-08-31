@@ -1,11 +1,9 @@
 import _ from 'underscore';
 import viewModes from '../const.view.modes';
-import React from 'react';
 import relationTypes from '../relationTypes';
 import RestStorage from 'tau/storage/api.nocache';
 import actionsIntegration from 'tau/api/actions/v1';
 import tausTrack from '../relations.taus';
-import ComponentLegendWrapper from './component.legend.wrapper.jsx';
 
 const REST_STORAGE_GROUP_NAME = 'showRelations';
 const FIELD_NAME = 'userData';
@@ -78,9 +76,7 @@ export default class LegendModel {
             relations: JSON.stringify({
                 expanded: this.isShown,
                 metadata: this.metadata,
-                relations: this.relations.map((r) => {
-                    return {name: r.name, show: r.show};
-                })
+                relations: this.relations.map((r) => ({name: r.name, show: r.show}))
             })
         });
     }
@@ -102,7 +98,7 @@ export default class LegendModel {
 
                     if (relationsConfig.relations) {
                         this.relations = this.relations.map((r) => {
-                            const matchedRelationConfig = relationsConfig.relations.filter(c => c.name === r.name)[0];
+                            const [matchedRelationConfig] = relationsConfig.relations.filter((c) => c.name === r.name);
 
                             if (matchedRelationConfig) {
                                 r.show = matchedRelationConfig.show;

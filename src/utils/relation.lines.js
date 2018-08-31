@@ -7,7 +7,6 @@ export const getRelationTypeColor = ({style}) => style.color;
 export const getRelationColor = (relation) =>
     getRelationTypeColor(relationTypes.filter(({name}) => name === relation)[0]);
 export const generateBezierCoords = (start, end, down = false) => {
-
     const points = [`M${start.x},${start.y}`];
 
     const rad = Math.PI / 48 * (down ? -1 : 1);

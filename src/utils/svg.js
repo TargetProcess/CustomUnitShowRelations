@@ -3,8 +3,7 @@ import * as relationUtils from '../utils/relation.lines';
 import svgTemplate from '../templates/svg.html';
 import relationTypes from '../relationTypes';
 
-export const createSvgFromTemplate = (width, height) => {
-    return $(svgTemplate({
+export const createSvgFromTemplate = (width, height) => $(svgTemplate({
         relationTypes,
         width,
         height,
@@ -13,4 +12,3 @@ export const createSvgFromTemplate = (width, height) => {
         getInboundRelationTypeMarkerEndId: relationUtils.getInboundRelationTypeMarkerEndId,
         getOutboundRelationTypeMarkerEndId: relationUtils.getOutboundRelationTypeMarkerEndId
     }));
-};
