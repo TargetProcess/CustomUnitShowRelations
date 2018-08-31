@@ -1,61 +1,73 @@
-import _ from 'underscore';
-import $ from 'jquery';
-import RelationsDraw from './relations.draw.js';
-import {intersectRects} from './utils/intersection';
-import viewModes from './const.view.modes';
+import * as $ from 'jquery';
+import viewModes from 'src/const.view.modes';
+import RelationsData from 'src/data';
+import RelationsDraw from 'src/relations.draw';
+import { intersectRects, IRect } from 'src/utils/intersection';
+import * as _ from 'underscore';
 
-export default class RelationsDrawTimeline extends RelationsDraw {
-    constructor(dataFetcher) {
+interface ICardElementWithMetadata extends HTMLElement {
+    sectionType: string;
+    holder: HTMLElement;
+    coords: string;
+}
+
+export default class RelationsDrawTimeline extends RelationsDraw<ICardElementWithMetadata> {
+    constructor(dataFetcher: RelationsData) {
         super(dataFetcher);
         this.viewMode = viewModes.TIMELINE;
     }
 
-    _appendSvgToGrid($svg) {
+    public _appendSvgToGrid($svg: JQuery) {
         this.$grid.find('.tau-timeline.i-role-timeline-column').append($svg);
     }
 
-    _getCardsGroupedByEntityId() {
+    public _getCardsGroupedByEntityId() {
         const groupedCards = _.groupBy(
             [
-                ...this.$grid.find('.tau-backlog-body .i-role-card, .tau-backlog-body .tau-sortable__placeholder').toArray().map((card) => _.extend(card, {
-                    sectionType: 'backlog',
-                    holder: card,
-                    coords: JSON.parse(card.dataset.dataItem).coords
-                })),
+                ...this.$grid.find('.tau-backlog-body .i-role-card, .tau-backlog-body .tau-sortable__placeholder')
+                    .toArray()
+                    .map((card) => ({
+                        ...card,
+                        sectionType: 'backlog',
+                        holder: card,
+                        coords: JSON.parse(card.dataset.dataItem!).coords
+                    })),
                 ...this.$grid.find('.tau-card-planner:not(.tau-section-invisible) .i-role-card, .tau-card-planner:not(.tau-section-invisible) .tau-sortable__placeholder')
                     .toArray()
-                    .map((card) => _.extend(card, {
+                    .map((card) => ({
+                        ...card,
                         sectionType: 'planned',
                         holder: card.parentElement,
-                        coords: JSON.parse(card.dataset.dataItem).coords
+                        coords: JSON.parse(card.dataset.dataItem!).coords
                     })),
                 ...this.$grid.find('.tau-timeline-card > .tau-card-holder:not(.tau-section-invisible) .i-role-card')
                     .toArray()
-                    .map((card) => _.extend(card, {
+                    .map((card) => ({
+                        ...card,
                         sectionType: 'actual',
                         holder: card,
-                        coords: JSON.parse(card.dataset.dataItem).coords
-                    }))],
+                        coords: JSON.parse(card.dataset.dataItem!).coords
+                    }))
+            ],
             (v) => v.getAttribute('data-entity-id'));
 
-        return _.keys(groupedCards).reduce((cards, key) => {
+        return Object.keys(groupedCards).reduce((cards: _.Dictionary<HTMLElement[]>, key) => {
             const sectionTypes = _.chain(groupedCards[key]).pluck('sectionType').uniq().value();
             const hasBacklog = sectionTypes.filter((f) => f === 'backlog').length > 0;
 
-            if (sectionTypes.length > 1 && !hasBacklog) {
-                cards[key] = groupedCards[key].filter((card) => card.sectionType === 'actual');
-            } else {
-                cards[key] = groupedCards[key];
-            }
+            cards[key] = sectionTypes.length > 1 && !hasBacklog ?
+                groupedCards[key].filter((card) => card.sectionType === 'actual') :
+                groupedCards[key];
+
             return cards;
         }, {});
     }
 
-    _getTable() {
+    public _getTable() {
         return this.$grid.find('.tau-timeline-flow');
     }
 
-    _getPositionFromRect(cardRect, tableRect) {
+    public _getPositionFromRect(cardRect: ClientRect | DOMRect, tableRect: ClientRect | DOMRect) {
         return {
             x: cardRect.left - tableRect.left,
             y: cardRect.top - tableRect.top - this.offset,
@@ -64,24 +76,21 @@ export default class RelationsDrawTimeline extends RelationsDraw {
         };
     }
 
-    _getIntersectionPoints(cardPos, targetPos) {
+    public _getIntersectionPoints(cardPos: IRect, targetPos: IRect) {
         const points = intersectRects(cardPos, targetPos);
 
         if (Math.abs(points.start.x - points.end.x) < 10) {
-            if (targetPos.x > cardPos.x) {
-                points.end.x = points.start.x + 10;
-            } else {
-                points.end.x = points.start.x - 10;
-            }
+            points.end.x = targetPos.x > cardPos.x ? points.start.x + 10 : points.start.x - 10;
         }
+
         return points;
     }
 
-    _getElementSelectFunction = (id, el) =>
+    public _getElementSelectFunction = (id: string, el: ICardElementWithMetadata) =>
         () => _.first((this.cardsByEntityId[id] || [])
-            .filter((c) => c.sectionType === el.sectionType && el.coords && _.isEqual(c.coords || '', el.coords || '')));
+            .filter((c) => c.sectionType === el.sectionType && el.coords && _.isEqual(c.coords || '', el.coords || '')))!
 
-    _getClientRects(fromEl, toEl) {
+    public _getClientRects(fromEl: ICardElementWithMetadata, toEl: ICardElementWithMetadata) {
         const rects = {
             cardRect: (fromEl.holder || fromEl).getBoundingClientRect(),
             targetRect: (toEl.holder || toEl).getBoundingClientRect(),
@@ -95,7 +104,7 @@ export default class RelationsDrawTimeline extends RelationsDraw {
 
             [rects.cardRect, rects.targetRect].forEach((rect) => {
                 if (rect.left < nowMarkerRect.left && rect.width > nowMarkerRect.left - rect.left) {
-                    rect.width = nowMarkerRect.left - rect.left;
+                    Object.assign(rect, { width: nowMarkerRect.left - rect.left });
                 }
             });
         }
@@ -103,7 +112,7 @@ export default class RelationsDrawTimeline extends RelationsDraw {
         return rects;
     }
 
-    _processTargetCards(cards) {
+    public _processTargetCards(cards: ICardElementWithMetadata[]) {
         return cards.map((card) => {
             const $parent = $(card).parent();
             const parentCard = $parent.hasClass('i-role-timeline-planner-card-holder') ? $parent[0] : card;

@@ -1,43 +1,78 @@
-import $ from 'jquery';
-import _ from 'underscore';
-import * as globalBus from 'tau/core/global.bus';
-import relationTypes from './relationTypes';
+import * as $ from 'jquery';
+import DirectionType from 'src/relationDirections';
+import relationTypes, { IRelationType } from 'src/relationTypes';
 import globalConfigurator from 'tau/configurator';
+import * as globalBus from 'tau/core/global.bus';
+import * as _ from 'underscore';
 
-const loadSimple = (url, params) =>
+interface IRawRelation {
+    ResourceType: string;
+    Id: string;
+    Master: {
+        ResourceType: string;
+        Id: string;
+        Name: string;
+    };
+    Slave: {
+        ResourceType: string;
+        Id: string;
+        Name: string;
+    };
+    RelationType: {
+        ResourceType: string;
+        Id: string;
+        Name: string;
+    };
+}
+
+export interface IRelation {
+    index?: number;
+    main: { id: string };
+    entity: { id: string };
+    relationType: { name: string };
+    directionType: DirectionType;
+}
+
+interface IStore {
+    id: number;
+    unbind(context: object): void;
+    on(event: object, callback: () => void, context: object): void;
+}
+
+const loadSimple = (url: string, params?: object) =>
     $.ajax({
         type: 'get',
-        url: url,
+        url,
         contentType: 'application/json; charset=utf-8',
         dataType: 'json',
         data: params
     });
 
-const loadPages = (url, params) =>
+const loadPages = (url: string, params?: object): JQuery.Promise<any> =>
     loadSimple(url, params)
-        .then(({Items, Next}) =>
+        .then(({ Items, Next }) =>
             (Next ? (loadPages(Next).then((pageItems) => Items.concat(pageItems))) : Items));
 
-const load = (resource, params) =>
+const load = (resource: string, params?: object): JQuery.Promise<any> =>
     loadPages(`${globalConfigurator.getApplicationPath()}/api/v1/${resource}`, params);
 
-const processItem = (item, type, directionType) => ({
+const processItem = (item: IRawRelation, directionType: DirectionType): IRelation => ({
     directionType,
     relationType: {
         name: item.RelationType.Name
     },
     entity: {
-        id: item[type].Id
+        id: item.Slave.Id
     },
     main: {
         id: item.Master.Id
     }
 });
 
-let store = null;
-const onStoreChanged = _.Callbacks();
+let store: IStore | null = null;
+const onStoreChanged = (_ as any).Callbacks();
 
-globalBus.get().on('configurator.ready', (e, configurator) => {
+globalBus.get().on('configurator.ready', (_e, configurator) => {
     if (!store) {
         store = configurator.storeFactory.getStore();
     } else {
@@ -51,53 +86,56 @@ globalBus.get().on('configurator.ready', (e, configurator) => {
 });
 
 export default class RelationsData {
+    public updated: any;
+
+    private entityIds: string[] = [];
+    private _relations: IRelation[] = [];
+    private filterConfig!: string[];
+    private store: IStore | null = null;
+
     constructor() {
-        this.entityIds = [];
-        this._relations = [];
         this.setFilterConfig([]);
-        this.updated = _.Callbacks();
+        this.updated = (_ as any).Callbacks();
         onStoreChanged.add(() => this.subscribeForRelationsUpdate());
         this.subscribeForRelationsUpdate();
     }
 
-    load(entityIds) {
+    public load(entityIds: string[]): JQuery.Promise<IRelation[]> {
         if (_.intersection(entityIds, this.entityIds).length === entityIds.length) {
-            return Promise.resolve(this.getRelationsFiltered());
+            return $.Deferred().resolve(this.getRelationsFiltered());
         }
         this.entityIds = entityIds;
-        return this._getRelationsByIdsInternal(entityIds).then((relations) => this._relations = relations)
+
+        return this._getRelationsByIdsInternal(entityIds)
+            .then((relations) => this._relations = relations)
             .then(() => this.getRelationsFiltered());
     }
 
-    refresh() {
+    public refresh() {
         return this._getRelationsByIdsInternal(this._relations.map((r) => r.entity.id));
     }
 
-    setFilterConfig(config) {
+    public setFilterConfig(config: IRelationType[]) {
         this.filterConfig = config.filter((c) => c.show)
             .map((relationType) => relationTypes.filter((r) => r.name === relationType.name)[0].name);
     }
 
-    getRelationsFiltered() {
+    public getRelationsFiltered() {
         return this._relations.filter((r) => this.filterConfig.some((c) => c === r.relationType.name));
     }
 
-    getRelationsByIds(entityIds) {
-        return this._relations.filter((r) => entityIds.some(r.entity.id));
-    }
-
-    _onRelationsChanged() {
+    public _onRelationsChanged() {
         this._getRelationsByIdsInternal(this.entityIds).then((relations) => {
             this._relations = relations;
             this.updated.fire();
         });
     }
 
-    subscribeForRelationsUpdate() {
+    public subscribeForRelationsUpdate() {
         if (this.store) {
             this.store.unbind(this);
         }
-        this.store = store;
+        this.store = store!;
         this.store.on({
             type: 'relation',
             eventName: 'afterSave',
@@ -115,22 +153,18 @@ export default class RelationsData {
         }, this);
     }
 
-    _getRelationsByIdsInternal(entityIds) {
+    public _getRelationsByIdsInternal(entityIds: string[]): JQuery.Promise<IRelation[]> {
         if (!entityIds.length) {
-            return Promise.resolve([]);
+            return $.Deferred().resolve();
         }
 
         return load('relations', {
             where: `Master.Id in (${entityIds.join(',')})`,
             include: '[Slave[Id],Master[Id],RelationType[Name]]'
-        })
-            .then((items) =>
-                items.map((v) => processItem(v, 'Slave', 'outbound'))
-            )
-            .fail(() => {
-                console.warn('Error loading relations for Relation Visualisation');
-                return [];
-            });
+        }).then((items: IRawRelation[]) =>
+            items.map((v) => processItem(v, DirectionType.outbound))
+        ).fail(() => {
+            return [];
+        });
     }
 }
-

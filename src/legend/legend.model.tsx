@@ -1,25 +1,40 @@
-import _ from 'underscore';
-import viewModes from '../const.view.modes';
-import relationTypes from '../relationTypes';
-import RestStorage from 'tau/storage/api.nocache';
+import * as React from 'react';
+import ViewMode from 'src/const.view.modes';
+import RelationsData from 'src/data';
+import { IBoardSettings } from 'src/index';
+import ComponentLegendWrapper from 'src/legend/component.legend.wrapper';
+import RelationDraw from 'src/relations.draw';
+import tausTrack from 'src/relations.taus';
+import relationTypes, { IRelationType } from 'src/relationTypes';
 import actionsIntegration from 'tau/api/actions/v1';
-import tausTrack from '../relations.taus';
+import RestStorage from 'tau/storage/api.nocache';
+import * as _ from 'underscore';
 
 const REST_STORAGE_GROUP_NAME = 'showRelations';
 const FIELD_NAME = 'userData';
 
-const defaultConfig = relationTypes.map((r) => ({...r, show: true}));
-const onUpdateLegend = _.Callbacks();
+const onUpdateLegend = (_ as any).Callbacks();
 
-actionsIntegration.addControl(<ComponentLegendWrapper onUpdateLegend={onUpdateLegend}/>);
+actionsIntegration.addControl(<ComponentLegendWrapper onUpdateLegend={onUpdateLegend} />);
 
 export default class LegendModel {
-    constructor(relationsDrawer, dataFetcher, boardSettings) {
+    public isShown = false;
+
+    private boardSettings: IBoardSettings;
+    private restStorage: RestStorage;
+    private relationsDrawer: RelationDraw;
+    private dataFetcher: RelationsData;
+    private saveToStorage: () => void;
+
+    private _userKey!: string;
+    private relations!: IRelationType[];
+
+    constructor(relationsDrawer: RelationDraw, dataFetcher: RelationsData, boardSettings: IBoardSettings) {
         this.boardSettings = boardSettings;
         this.restStorage = new RestStorage();
         this.relationsDrawer = relationsDrawer;
         this.dataFetcher = dataFetcher;
-        this.saveToStorage = _.throttle(this._saveToStorage, 1000, {leading: false});
+        this.saveToStorage = _.throttle(this._saveToStorage, 1000, { leading: false });
 
         this.initializeSubscriptions();
         this.setInitialData(boardSettings);
@@ -27,64 +42,63 @@ export default class LegendModel {
         this.loadSettings().then(() => this.refresh());
     }
 
-    initializeSubscriptions() {
+    public initializeSubscriptions() {
         actionsIntegration.onShow(() => {
             this.refresh();
         });
     }
 
-    setInitialData(boardSettings) {
-        this._userKey = `user${(window.loggedUser || {id: null}).id}-${boardSettings.settings.id}`;
+    public setInitialData(boardSettings: IBoardSettings) {
+        const currentUserId = window.loggedUser ? window.loggedUser.id : null;
+        this._userKey = `user${currentUserId}-${boardSettings.settings.id}`;
         this.isShown = false;
-        this.relations = _.deepClone(defaultConfig);
+        this.relations = relationTypes.map((r) => ({ ...r, show: true }));
         this.dataFetcher.setFilterConfig(this.relations);
     }
 
-    data() {
+    public data() {
         return {
-            isVisible: this.boardSettings.settings.viewMode !== viewModes.DETAILS,
-            onUpdateLegend: onUpdateLegend,
+            isVisible: this.boardSettings.settings.viewMode !== ViewMode.DETAILS,
+            onUpdateLegend,
             isExpanded: this.isShown,
             relations: this.relations,
-            metadata: this.metadata,
             onExpansionStateChange: this.changeShowState,
             onRelationTypeSelect: this.changeRelationTypes
         };
     }
 
-    changeRelationTypes = ({name = '', show = false}) => {
+    public changeRelationTypes = ({ name = '', show = false }) => {
         tausTrack({
             name: `${show ? 'add' : 'remove'}-${name.toLowerCase()}`
         });
-        this.relations.filter(({name: relationName}) => relationName === name)[0].show = show;
+        this.relations.filter(({ name: relationName }) => relationName === name)[0].show = show;
         this.dataFetcher.setFilterConfig(this.relations);
         this.saveToStorage();
         this.refresh();
-    };
+    }
 
-    changeShowState = (isShown) => {
+    public changeShowState = (isShown: boolean) => {
         tausTrack({
             name: isShown ? 'show' : 'hide'
         });
         this.isShown = isShown;
         this.saveToStorage();
         this.refresh();
-    };
+    }
 
-    _saveToStorage() {
+    public _saveToStorage() {
         this.restStorage.data(REST_STORAGE_GROUP_NAME, this._userKey, {
             relations: JSON.stringify({
                 expanded: this.isShown,
-                metadata: this.metadata,
-                relations: this.relations.map((r) => ({name: r.name, show: r.show}))
+                relations: this.relations.map((r) => ({ name: r.name, show: r.show }))
             })
         });
     }
 
-    loadSettings() {
+    public loadSettings() {
         return this.restStorage
             .select(REST_STORAGE_GROUP_NAME, {
-                $where: {key: this._userKey},
+                $where: { key: this._userKey },
                 $fields: [FIELD_NAME]
             }).then((response) => {
                 const data = response.data && response.data[0] && response.data[0].userData;
@@ -98,7 +112,7 @@ export default class LegendModel {
 
                     if (relationsConfig.relations) {
                         this.relations = this.relations.map((r) => {
-                            const [matchedRelationConfig] = relationsConfig.relations.filter((c) => c.name === r.name);
+                            const [matchedRelationConfig] = relationsConfig.relations.filter((c: any) => c.name === r.name);
 
                             if (matchedRelationConfig) {
                                 r.show = matchedRelationConfig.show;
@@ -111,9 +125,9 @@ export default class LegendModel {
             });
     }
 
-    refresh() {
+    public refresh() {
         if (this.relationsDrawer) {
-            if (this.isShown === false) {
+            if (!this.isShown) {
                 this.relationsDrawer.removeAll();
             } else {
                 this.relationsDrawer.redraw();
@@ -122,7 +136,7 @@ export default class LegendModel {
         }
     }
 
-    cleanup() {
+    public cleanup() {
         actionsIntegration.unbind();
         delete this.relationsDrawer;
     }

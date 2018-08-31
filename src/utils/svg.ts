@@ -1,9 +1,9 @@
-import $ from 'jQuery';
-import * as relationUtils from '../utils/relation.lines';
-import svgTemplate from '../templates/svg.html';
-import relationTypes from '../relationTypes';
+import * as $ from 'jquery';
+import relationTypes from 'src/relationTypes';
+import svgTemplate from 'src/templates/svg.html';
+import * as relationUtils from 'src/utils/relation.lines';
 
-export const createSvgFromTemplate = (width, height) => $(svgTemplate({
+export const createSvgFromTemplate = (width: number, height: number) => $(svgTemplate({
     relationTypes,
     width,
     height,

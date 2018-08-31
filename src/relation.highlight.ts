@@ -1,15 +1,20 @@
-import $ from 'jquery';
+import * as $ from 'jquery';
 
-let selectedCardIds = [];
+import ViewMode from 'src/const.view.modes';
+import { IRelation } from 'src/data';
+import DirectionType from 'src/relationDirections';
+import { ICardsGroupedByEntityId } from 'src/relations.draw';
 
-const hideSelection = ($card) => {
+let selectedCardIds: number[] = [];
+
+const hideSelection = ($card: JQuery) => {
     if ($card.hasClass('tau-selected')) {
         $card.removeClass('tau-selected');
         selectedCardIds = selectedCardIds.concat($card.data('id'));
     }
 };
 
-const highlightCard = (card, directionType, viewMode) => {
+const highlightCard = (card: HTMLElement, directionType: DirectionType, viewMode: ViewMode) => {
     const $el = $(card);
 
     if (viewMode === 'timeline') {
@@ -26,7 +31,7 @@ const highlightCard = (card, directionType, viewMode) => {
     $el.addClass('mashupCustomUnitShowRelations__related');
 };
 
-const cleanCards = ($grid) => {
+const cleanCards = ($grid: JQuery) => {
     ['related', 'related-inbound', 'related-outbound', 'source'].forEach((v) => {
         const className = `mashupCustomUnitShowRelations__${v}`;
 
@@ -34,7 +39,7 @@ const cleanCards = ($grid) => {
     });
 };
 
-export const cleanGridAndCards = ($grid) => {
+export const cleanGridAndCards = ($grid: JQuery) => {
     if ($grid) {
         $grid.removeClass('mashupCustomUnitShowRelations');
         $grid.removeClass('mashupCustomUnitShowRelations-highlighted');
@@ -43,10 +48,10 @@ export const cleanGridAndCards = ($grid) => {
     }
 };
 
-export const getHighlightCardsByRelations = ($grid, cardsByEntityId, viewMode) => {
-    const getCardsByEntityId = (entityId) => cardsByEntityId[entityId] || [];
+export function getHighlightCardsByRelations($grid: JQuery, cardsByEntityId: ICardsGroupedByEntityId, viewMode: ViewMode) {
+    const getCardsByEntityId = (entityId: string) => cardsByEntityId[entityId] || [];
 
-    const highlightCardsByRelation = (relation) => {
+    const highlightCardsByRelation = (relation: IRelation) => {
         getCardsByEntityId(relation.entity.id).forEach((card) => {
             highlightCard(card, relation.directionType, viewMode);
         });
@@ -55,7 +60,7 @@ export const getHighlightCardsByRelations = ($grid, cardsByEntityId, viewMode) =
     $grid.addClass('mashupCustomUnitShowRelations');
     cleanCards($grid);
 
-    return (relations, sourceCard) => {
+    return (relations: IRelation[], sourceCard: HTMLElement) => {
         const $card = $(sourceCard);
 
         $card.addClass('mashupCustomUnitShowRelations__source');
@@ -63,4 +68,4 @@ export const getHighlightCardsByRelations = ($grid, cardsByEntityId, viewMode) =
 
         relations.forEach(highlightCardsByRelation);
     };
-};
+}

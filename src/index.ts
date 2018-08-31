@@ -1,25 +1,31 @@
-import $ from 'jquery';
-import {onBoardCreate, onTimelineCreate, onListCreate, onDetailsCreate} from 'tau/api/board/v1';
-import * as subscriptions from './bus.subscriptions';
-import RelationsDraw from './relations.draw';
-import RelationsDrawTimeline from './relations.draw.timeline';
-import RelationsDrawList from './relations.draw.list';
-import Model from './relations.draw.model';
+import * as $ from 'jquery';
+import * as subscriptions from 'src/bus.subscriptions';
+import ViewMode from 'src/const.view.modes';
+import RelationsDraw from 'src/relations.draw';
+import RelationsDrawList from 'src/relations.draw.list';
+import RelationsDrawModel from 'src/relations.draw.model';
+import RelationsDrawTimeline from 'src/relations.draw.timeline';
+import { onBoardCreate, onDetailsCreate, onListCreate, onTimelineCreate } from 'tau/api/board/v1';
 
-import './index.css';
+import 'src/index.css';
 
-let model = {
-    isEmpty: true,
-    redraw: $.noop,
-    setConfig: $.noop
-};
+export interface IBoardSettings {
+    settings: {
+        id: number;
+        viewMode: ViewMode;
+    };
+}
 
-const createModel = (RelationsDrawConstructor, boardSettings) => {
-    if (model.isEmpty) {
-        model = new Model(RelationsDrawConstructor, boardSettings);
+let currentModel: RelationsDrawModel | null = null;
+
+const createModel = (RelationsDrawConstructor: typeof RelationsDraw, boardSettings: IBoardSettings) => {
+    if (!currentModel) {
+        currentModel = new RelationsDrawModel(RelationsDrawConstructor, boardSettings);
     } else {
-        model.setConfig(RelationsDrawConstructor, boardSettings);
+        currentModel.setConfig(RelationsDrawConstructor, boardSettings);
     }
+
+    return currentModel;
 };
 
 const initialize = () => {
@@ -28,7 +34,7 @@ const initialize = () => {
     });
 
     onBoardCreate((board) => {
-        createModel(RelationsDraw, board.board.boardSettings);
+        const model = createModel(RelationsDraw, board.board.boardSettings);
 
         board.onCellsUpdate(model.redraw);
         board.onCardDragging(model.redraw);
@@ -42,10 +48,10 @@ const initialize = () => {
         const timelineEvents = timeline.events;
 
         timelineEvents.onRender.once(() => {
-            createModel(RelationsDrawTimeline, timeline.boardSettings);
+            const model = createModel(RelationsDrawTimeline as any, timeline.boardSettings);
 
             $('.tau-timeline-canvas').scroll((evt) => {
-                model.update({y: evt.target.scrollTop});
+                model.update({ y: evt.target.scrollTop });
             });
             $(window).resize(() => {
                 model.update();
@@ -68,7 +74,7 @@ const initialize = () => {
             timelineEvents.onViewTimelineTracksCountChanged.add(() => {
                 model.redraw();
             });
-            timelineEvents.onPlannedDatesUpdating.add(($card) => {
+            timelineEvents.onPlannedDatesUpdating.add(($card: JQuery) => {
                 model.updateRelationsForCard($card.data('id'));
             });
         });
@@ -78,7 +84,7 @@ const initialize = () => {
         const listEvents = list.events;
 
         listEvents.onTreeRendered.once(() => {
-            createModel(RelationsDrawList, list.boardSettings);
+            const model = createModel(RelationsDrawList as any, list.boardSettings);
 
             listEvents.onTreeRendered.add(() => {
                 model.redraw();
@@ -86,8 +92,8 @@ const initialize = () => {
             listEvents.onTreeChanged.add(() => {
                 model.redraw();
             });
-            listEvents.onCardDragging.add((card) => {
-                model.updateRelationsForCard(card.data('id'));
+            listEvents.onCardDragging.add(($card: JQuery) => {
+                model.updateRelationsForCard($card.data('id'));
             });
             listEvents.onExpansionStateChanged.add(() => {
                 model.redraw();
@@ -96,9 +102,9 @@ const initialize = () => {
     });
 };
 
-const initializeSubsriptions = () => {
-    subscriptions.onHideEmptyLines(() => model.redraw());
+const initializeSubscriptions = () => {
+    subscriptions.onHideEmptyLines(() => currentModel && currentModel.redraw());
 };
 
 initialize();
-initializeSubsriptions();
+initializeSubscriptions();

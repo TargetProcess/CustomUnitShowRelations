@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+      "module": "es2015",
+      "moduleResolution": "node",
+      "baseUrl": ".",
+      "target": "es2016",
+      "sourceMap": true,
+      "jsx": "preserve",
+
+      "strict": true,
+      "noUnusedLocals": true,
+      "noUnusedParameters": true,
+      "allowUnreachableCode": false
+    },
+    "include": [
+      "src/**/*",
+      "typings/**/*"
+    ]
+  }

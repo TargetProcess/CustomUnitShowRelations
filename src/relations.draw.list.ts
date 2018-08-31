@@ -1,24 +1,25 @@
-import _ from 'Underscore';
-import RelationsDraw from './relations.draw.js';
-import relationDirection from './relationDirections';
-import {intersectRects} from './utils/intersection';
-import viewModes from './const.view.modes';
+import ViewMode from 'src/const.view.modes';
+import RelationsData, { IRelation } from 'src/data';
+import relationDirection from 'src/relationDirections';
+import RelationsDraw from 'src/relations.draw';
+import { intersectRects, IRect } from 'src/utils/intersection';
+import * as _ from 'Underscore';
 
 export default class RelationsDrawList extends RelationsDraw {
-    constructor(dataFetcher) {
+    constructor(dataFetcher: RelationsData) {
         super(dataFetcher);
-        this.viewMode = viewModes.LIST;
+        this.viewMode = ViewMode.LIST;
     }
 
-    _appendSvgToGrid($svg) {
+    public _appendSvgToGrid($svg: JQuery) {
         this.$grid.find('.i-role-unit-editor-popup-position-within').append($svg);
     }
 
-    _getTable() {
+    public _getTable() {
         return this.$grid.find('.tau-list-level-0');
     }
 
-    _getIntersectionPoints(cardPos, targetPos, gridRect, relation) {
+    public _getIntersectionPoints(cardPos: IRect, targetPos: IRect, gridRect: ClientRect | DOMRect, relation: IRelation) {
         if (Math.abs(targetPos.y - cardPos.y) > 20) {
             const points = intersectRects(cardPos, targetPos);
 
@@ -50,10 +51,9 @@ export default class RelationsDrawList extends RelationsDraw {
         }
     }
 
-    _processRelations(relations) {
-        relations = _.groupBy(relations, (v) => v.directionType);
-        relations = _.map(relations, (list) => list.map((v, k) => ({index: k, ...v})));
-        relations = _.reduce(relations, (res, v) => res.concat(v), []);
-        return relations;
+    public _processRelations(relations: IRelation[]) {
+        const relationsByDirectionType = _.groupBy(relations, (relation) => relation.directionType);
+        const relationWithIndexes = _.map(relationsByDirectionType, (list) => list.map((relation, index) => ({ index, ...relation })));
+        return _.reduce(relationWithIndexes, (res, v) => res.concat(v), [] as IRelation[]);
     }
 }

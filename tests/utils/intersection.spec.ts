@@ -1,4 +1,4 @@
-import {intersectRects} from 'src/utils/intersection';
+import { intersectRects } from 'src/utils/intersection';
 
 it('returns points of closest slice between two rects', () => {
     const rect1 = {

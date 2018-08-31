@@ -27,7 +27,12 @@ function createConfig(opts_) {
             `?libraryTarget=${mashupName}&outputFile=${outputConfigFileName}!./src/config.json`
         ],
         // main entry point
-        index: ['./src/index.js']
+        index: ['./src/index.ts']
+    };
+
+    config.resolve = {
+        modules: [path.resolve(__dirname, '..'), 'node_modules'],
+        extensions: ['.js', '.jsx', '.ts', '.tsx', '.json']
     };
 
     if (!opts.mashupManager) {
@@ -43,10 +48,11 @@ function createConfig(opts_) {
     config.module = {
         rules: [
             {
-                test: /\.jsx?$/,
+                test: /\.tsx?$/,
                 exclude: /node_modules/,
                 use: [
-                    {loader: 'babel-loader'}
+                    {loader: 'babel-loader'},
+                    {loader: 'ts-loader'}
                 ]
             },
             {
