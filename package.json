@@ -16,14 +16,9 @@
         "build:manager": "shx rm -rf build/manager && cross-env NODE_ENV=production webpack --config webpack/manager.config.js --output-path build/manager --progress && cd build/manager && shx rm mashup.config.js",
         "build:all": "npm run build:library && npm run build:manager",
         "lint": "eslint .",
-        "test": "karma start --single-run"
+        "test": "jest"
     },
-    "licenses": [
-        {
-            "type": "MIT",
-            "url": "http://www.opensource.org/licenses/mit-license.php"
-        }
-    ],
+    "license": "MIT",
     "devDependencies": {
         "autoprefixer": "^6.0.3",
         "autoprefixer-core": "^6.0.1",
@@ -34,20 +29,14 @@
         "babel-preset-es3": "^1.0.1",
         "babel-preset-react": "^6.24.1",
         "babel-preset-stage-1": "^6.24.1",
-        "chai": "^3.4.1",
         "combine-assets-plugin": "targetprocess/combine-assets-plugin",
         "cross-env": "^1.0.8",
         "css-loader": "^0.14.5",
         "eslint": "^5.4.0",
         "eslint-plugin-babel": "^5.1.0",
+        "eslint-plugin-jest": "^21.22.0",
         "file-loader": "^0.8.4",
-        "karma": "^0.13.15",
-        "karma-chrome-launcher": "^0.2.1",
-        "karma-mocha": "^0.2.1",
-        "karma-mocha-own-reporter": "^1.0.0",
-        "karma-sourcemap-loader": "^0.3.6",
-        "karma-webpack": "^1.7.0",
-        "mocha": "^2.3.4",
+        "jest": "^23.5.0",
         "postcss-loader": "^0.6.0",
         "postcss-nested": "^1.0.0",
         "postcss-scss": "^0.1.2",
@@ -68,5 +57,16 @@
         "Aliaksei Shytkin <shitkin@targetprocess.com>",
         "Sergey Mostovoy <mostovoy@targetprocess.com>",
         "Vladimir Tikhonov <tikhonov@targetprocess.com>"
-    ]
+    ],
+    "jest": {
+        "testRegex": "\\.spec\\.js$",
+        "moduleFileExtensions": [
+          "js",
+          "jsx"
+        ],
+        "modulePaths": [
+          "<rootDir>"
+        ]
+      }
+
 }
