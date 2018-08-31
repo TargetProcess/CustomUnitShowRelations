@@ -64,9 +64,9 @@ export default class RelationsData {
         if (_.intersection(entityIds, this.entityIds).length === entityIds.length) {
             return Promise.resolve(this.getRelationsFiltered());
         }
-            this.entityIds = entityIds;
-            return this._getRelationsByIdsInternal(entityIds).then((relations) => this._relations = relations)
-                .then(() => this.getRelationsFiltered());
+        this.entityIds = entityIds;
+        return this._getRelationsByIdsInternal(entityIds).then((relations) => this._relations = relations)
+            .then(() => this.getRelationsFiltered());
     }
 
     refresh() {
@@ -122,11 +122,11 @@ export default class RelationsData {
 
         return load('relations', {
             where: `Master.Id in (${entityIds.join(',')})`,
-            include: `[Slave[Id],Master[Id],RelationType[Name]]`
+            include: '[Slave[Id],Master[Id],RelationType[Name]]'
         })
             .then((items) =>
                 items.map((v) => processItem(v, 'Slave', 'outbound'))
-        )
+            )
             .fail(() => {
                 console.warn('Error loading relations for Relation Visualisation');
                 return [];

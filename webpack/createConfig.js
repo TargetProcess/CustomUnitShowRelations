@@ -5,7 +5,7 @@ const pkg = require('../package.json');
 const TargetprocessMashupPlugin = require('targetprocess-mashup-webpack-plugin');
 const CombineAssetsPlugin = require('combine-assets-plugin');
 
-function createConfig (opts_) {
+function createConfig(opts_) {
     const opts = Object.assign({
         mashupName: pkg.name,
         production: false,
@@ -25,7 +25,7 @@ function createConfig (opts_) {
     config.entry = {
         // process config js module from JSON file
         configData: [
-            `targetprocess-mashup-config` +
+            'targetprocess-mashup-config' +
             `?libraryTarget=${mashupName}&outputFile=${outputConfigFileName}!./src/config.json`
         ],
         // main entry point
@@ -36,8 +36,6 @@ function createConfig (opts_) {
     if (!opts.mashupManager) {
         // produce system configs from JSON file
         config.entry.manifestData = ['targetprocess-mashup-manifest!./src/manifest.json'];
-        // prevent automatically load data from `chunks` folder, use for async load by demand
-        config.entry.ignoreData = ['file?name=chunks/mashup.ignore!./src/mashup.ignore'];
     }
 
     config.output = {
@@ -96,7 +94,6 @@ function createConfig (opts_) {
     let toConcat = {};
     const toExclude = [
         'configData.js',
-        'ignoreData.js',
         'manifestData.js'
     ];
 

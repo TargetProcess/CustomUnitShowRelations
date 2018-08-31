@@ -13,26 +13,26 @@ const intersectSlices = ({x1: x11, x2: x12, y1: y11, y2: y12}, {x1: x21, x2: x22
 };
 
 const getSlicesByRect = (rect) => [{
-        x1: rect.x,
-        y1: rect.y,
-        x2: rect.x + rect.width,
-        y2: rect.y
-    }, {
-        x1: rect.x + rect.width,
-        y1: rect.y,
-        x2: rect.x + rect.width,
-        y2: rect.y + rect.height
-    }, {
-        x1: rect.x,
-        y1: rect.y + rect.height,
-        x2: rect.x + rect.width,
-        y2: rect.y + rect.height
-    }, {
-        x1: rect.x,
-        y1: rect.y,
-        x2: rect.x,
-        y2: rect.y + rect.height
-    }];
+    x1: rect.x,
+    y1: rect.y,
+    x2: rect.x + rect.width,
+    y2: rect.y
+}, {
+    x1: rect.x + rect.width,
+    y1: rect.y,
+    x2: rect.x + rect.width,
+    y2: rect.y + rect.height
+}, {
+    x1: rect.x,
+    y1: rect.y + rect.height,
+    x2: rect.x + rect.width,
+    y2: rect.y + rect.height
+}, {
+    x1: rect.x,
+    y1: rect.y,
+    x2: rect.x,
+    y2: rect.y + rect.height
+}];
 
 const isBetween = (coord, x, y) => coord >= Math.floor(x) && coord <= Math.ceil(y);
 
