@@ -1,8 +1,4 @@
 {
-    "presets": [
-        "es3",
-        "env",
-        "react",
-        "stage-1"
-    ]
+    "presets": ["env", "react"],
+    "plugins": ["transform-object-rest-spread", "babel-plugin-transform-class-properties"]
 }
