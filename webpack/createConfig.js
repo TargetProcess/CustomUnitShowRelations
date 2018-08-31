@@ -7,14 +7,12 @@ const CombineAssetsPlugin = require('combine-assets-plugin');
 
 function createConfig(opts_) {
     const opts = Object.assign({
-        mashupName: pkg.name,
         production: false,
         mashupManager: false
     }, opts_);
 
-
     // mashup unique name
-    const mashupName = opts.mashupName || __dirname.split(path.sep).pop();
+    const mashupName = pkg.name;
 
     // you should use format <something>.config.js to allow Mashup Manager autodiscover
     // config file
@@ -25,52 +23,59 @@ function createConfig(opts_) {
     config.entry = {
         // process config js module from JSON file
         configData: [
-            'targetprocess-mashup-config' +
+            'targetprocess-mashup-config-loader' +
             `?libraryTarget=${mashupName}&outputFile=${outputConfigFileName}!./src/config.json`
         ],
         // main entry point
         index: ['./src/index.js']
-
     };
 
     if (!opts.mashupManager) {
         // produce system configs from JSON file
-        config.entry.manifestData = ['targetprocess-mashup-manifest!./src/manifest.json'];
+        config.entry.manifestData = ['targetprocess-mashup-manifest-loader!./src/manifest.json'];
     }
 
     config.output = {
         filename: '[name].js',
-        path: 'dist',
-        chunkFilename: 'chunks/[id].[name].js',
-        pathinfo: !opts.production,
-        // should be unique to prevent collision with main webpack instance
-        jsonpFunction: `webpackJsonp_mashup_${mashupName}`
+        path: path.resolve(__dirname, 'dist')
     };
 
     config.module = {
-        loaders: [
+        rules: [
             {
-                test: /\.js$/,
-                loader: 'babel-loader',
-                exclude: /node_modules/
+                test: /\.jsx?$/,
+                exclude: /node_modules/,
+                use: [
+                    {loader: 'babel-loader'}
+                ]
             },
             {
                 test: /\.css$/,
-                loader: 'style!css!postcss?parser=postcss-scss'
+                use: [
+                    {loader: 'style-loader'},
+                    {loader: 'css-loader'},
+                    {
+                        loader: 'postcss-loader',
+                        options: {
+                            parser: 'postcss-scss',
+                            plugins: [
+                                require('postcss-nested'),
+                                require('autoprefixer')({browsers: ['last 2 version']})
+                            ]
+                        }
+                    }
+                ]
             },
             {
                 test: /\.html$/,
-                loader: 'underscore-template'
-            },
-            {
-                test: /.jsx?$/,
-                loader: 'babel-loader',
-                exclude: /node_modules/
-            }]
+                use: [
+                    {loader: 'underscore-template-loader'}
+                ]
+            }
+        ]
     };
 
     if (!opts.production) {
-        config.debug = true;
         config.devtool = 'eval-source-map';
     }
 
@@ -79,16 +84,12 @@ function createConfig(opts_) {
             useConfig: true
         }),
         new webpack.DefinePlugin({
-            '__DEV__': process.env.NODE_ENV !== 'production',
-            '__PRODUCTION__': process.env.NODE_ENV === 'production',
             'process.env': {
                 NODE_ENV: JSON.stringify(process.env.NODE_ENV)
             }
         }),
 
-        new webpack.BannerPlugin(`v${pkg.version} Build ${String(new Date())}`, {
-            entryOnly: true
-        })
+        new webpack.BannerPlugin(`v${pkg.version} Build ${new Date()}`)
     ];
 
     let toConcat = {};
@@ -107,13 +108,6 @@ function createConfig(opts_) {
         toConcat: toConcat,
         toExclude: toExclude
     }));
-
-    if (opts.mashupManager) {
-        // produce single file index.js despite async chunks
-        config.plugins = config.plugins.concat(new webpack.optimize.LimitChunkCountPlugin({
-            maxChunks: 1
-        }));
-    }
 
     if (opts.production) {
         config.plugins = config.plugins.concat(new webpack.optimize.UglifyJsPlugin({
@@ -138,11 +132,6 @@ function createConfig(opts_) {
         /^tp3\//,
         /^tau\//,
         /^tp\//
-    ];
-
-    config.postcss = [
-        require('postcss-nested'),
-        require('autoprefixer')({browsers: ['last 2 version']})
     ];
 
     return config;
