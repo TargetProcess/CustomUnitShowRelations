@@ -2,7 +2,6 @@ import * as $ from 'jquery';
 
 import ViewMode from 'src/const.view.modes';
 import { IRelation } from 'src/data';
-import DirectionType from 'src/relationDirections';
 import { ICardsGroupedByEntityId } from 'src/relations.draw';
 
 let selectedCardIds: number[] = [];
@@ -14,7 +13,7 @@ const hideSelection = ($card: JQuery) => {
     }
 };
 
-const highlightCard = (card: HTMLElement, directionType: DirectionType, viewMode: ViewMode) => {
+const highlightCard = (card: HTMLElement, viewMode: ViewMode) => {
     const $el = $(card);
 
     if (viewMode === 'timeline') {
@@ -22,7 +21,6 @@ const highlightCard = (card: HTMLElement, directionType: DirectionType, viewMode
 
         if ($parent.length) {
             $parent.addClass('mashupCustomUnitShowRelations__related');
-            $parent.addClass(`mashupCustomUnitShowRelations__${directionType}`);
             hideSelection($parent);
         }
     }
@@ -48,12 +46,12 @@ export const cleanGridAndCards = ($grid: JQuery) => {
     }
 };
 
-export function getHighlightCardsByRelations($grid: JQuery, cardsByEntityId: ICardsGroupedByEntityId, viewMode: ViewMode) {
-    const getCardsByEntityId = (entityId: string) => cardsByEntityId[entityId] || [];
+export function buildCardsByRelationsHighlighter($grid: JQuery, cardsByEntityId: ICardsGroupedByEntityId, viewMode: ViewMode) {
+    const getCardsByEntityId = (entityId: number) => cardsByEntityId[entityId] || [];
 
     const highlightCardsByRelation = (relation: IRelation) => {
         getCardsByEntityId(relation.entity.id).forEach((card) => {
-            highlightCard(card, relation.directionType, viewMode);
+            highlightCard(card, viewMode);
         });
     };
 

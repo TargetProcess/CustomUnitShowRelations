@@ -1,13 +1,13 @@
 import * as React from 'react';
 import { IOnSelectEventData } from 'src/legend/component.legend.wrapper';
-import { IRelationType } from 'src/relationTypes';
+import { IRelationConfig } from 'src/legend/legend.model';
 
-const getRelationCssClass = (relation: IRelationType) => {
-    return `relations-legend__item-name--type-${relation.name.toLowerCase()}`;
+const getRelationCssClass = (relationConfig: IRelationConfig) => {
+    return `relations-legend__item-name--type-${relationConfig.name.toLowerCase()}`;
 };
 
 interface ILegendRelationsProps {
-    relations: IRelationType[];
+    relationConfigs: IRelationConfig[];
     onSelect: (eventData: IOnSelectEventData) => void;
 }
 
@@ -19,21 +19,21 @@ export default class LegendRelations extends React.Component<ILegendRelationsPro
     public render() {
         return (
             <ul className="relations-legend relations-legend--expanded">
-                {this.props.relations.map(((relationType) => this.renderRelationType(relationType)))}
+                {this.props.relationConfigs.map(((relationConfig) => this.renderRelation(relationConfig)))}
             </ul>
         );
     }
 
-    public renderRelationType(relationType: IRelationType) {
-        const className = `tau-checkbox relations-legend__item-name tau-checkbox ${getRelationCssClass(relationType)}}`;
+    public renderRelation(relationConfig: IRelationConfig) {
+        const className = `tau-checkbox relations-legend__item-name tau-checkbox ${getRelationCssClass(relationConfig)}}`;
 
         return (
-            <li key={relationType.name} className="relations-legend__item">
+            <li key={relationConfig.name} className="relations-legend__item">
                 <label className="tau-checkbox relations-legend__checkbox">
-                    <span className={className}>{relationType.label}</span>
+                    <span className={className}>{relationConfig.label}</span>
                     <input
-                        onChange={() => this.onSelect({ name: relationType.name, show: !relationType.show })}
-                        checked={relationType.show}
+                        onChange={() => this.onSelect({ name: relationConfig.name, show: !relationConfig.show })}
+                        checked={relationConfig.show}
                         type="checkbox"
                         className="i-role-toggle-global-rules"
                         value="on"

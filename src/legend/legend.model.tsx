@@ -15,6 +15,10 @@ const FIELD_NAME = 'userData';
 
 const onUpdateLegend = (_ as any).Callbacks();
 
+export interface IRelationConfig extends IRelationType {
+    show: boolean;
+}
+
 actionsIntegration.addControl(<ComponentLegendWrapper onUpdateLegend={onUpdateLegend} />);
 
 export default class LegendModel {
@@ -27,7 +31,7 @@ export default class LegendModel {
     private saveToStorage: () => void;
 
     private _userKey!: string;
-    private relations!: IRelationType[];
+    private relationConfigs!: IRelationConfig[];
 
     constructor(relationsDrawer: RelationDraw, dataFetcher: RelationsData, boardSettings: IBoardSettings) {
         this.boardSettings = boardSettings;
@@ -52,8 +56,8 @@ export default class LegendModel {
         const currentUserId = window.loggedUser ? window.loggedUser.id : null;
         this._userKey = `user${currentUserId}-${boardSettings.settings.id}`;
         this.isShown = false;
-        this.relations = relationTypes.map((r) => ({ ...r, show: true }));
-        this.dataFetcher.setFilterConfig(this.relations);
+        this.relationConfigs = relationTypes.map((r) => ({ ...r, show: true }));
+        this.dataFetcher.setFilterConfig(this.relationConfigs);
     }
 
     public data() {
@@ -61,7 +65,7 @@ export default class LegendModel {
             isVisible: this.boardSettings.settings.viewMode !== ViewMode.DETAILS,
             onUpdateLegend,
             isExpanded: this.isShown,
-            relations: this.relations,
+            relationConfigs: this.relationConfigs,
             onExpansionStateChange: this.changeShowState,
             onRelationTypeSelect: this.changeRelationTypes
         };
@@ -71,8 +75,8 @@ export default class LegendModel {
         tausTrack({
             name: `${show ? 'add' : 'remove'}-${name.toLowerCase()}`
         });
-        this.relations.filter(({ name: relationName }) => relationName === name)[0].show = show;
-        this.dataFetcher.setFilterConfig(this.relations);
+        this.relationConfigs.filter(({ name: relationName }) => relationName === name)[0].show = show;
+        this.dataFetcher.setFilterConfig(this.relationConfigs);
         this.saveToStorage();
         this.refresh();
     }
@@ -90,7 +94,7 @@ export default class LegendModel {
         this.restStorage.data(REST_STORAGE_GROUP_NAME, this._userKey, {
             relations: JSON.stringify({
                 expanded: this.isShown,
-                relations: this.relations.map((r) => ({ name: r.name, show: r.show }))
+                relations: this.relationConfigs.map((r) => ({ name: r.name, show: r.show }))
             })
         });
     }
@@ -111,7 +115,7 @@ export default class LegendModel {
                     }
 
                     if (relationsConfig.relations) {
-                        this.relations = this.relations.map((r) => {
+                        this.relationConfigs = this.relationConfigs.map((r) => {
                             const [matchedRelationConfig] = relationsConfig.relations.filter((c: any) => c.name === r.name);
 
                             if (matchedRelationConfig) {
@@ -120,7 +124,7 @@ export default class LegendModel {
                             return r;
                         });
                     }
-                    this.dataFetcher.setFilterConfig(this.relations);
+                    this.dataFetcher.setFilterConfig(this.relationConfigs);
                 }
             });
     }

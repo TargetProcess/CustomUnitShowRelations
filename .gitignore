@@ -15,6 +15,7 @@ node_modules
 
 # Output dir
 build
+dist
 
 # Editors
 .idea

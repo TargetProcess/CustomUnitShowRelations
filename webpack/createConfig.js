@@ -81,6 +81,14 @@ function createConfig(opts_) {
         ]
     };
 
+    config.devServer = {
+        headers: {
+            'Access-Control-Allow-Origin': '*'
+        },
+        inline: false,
+        hot: false
+    };
+
     if (!opts.production) {
         config.devtool = 'eval-source-map';
     }

@@ -9,6 +9,5 @@ export const createSvgFromTemplate = (width: number, height: number) => $(svgTem
     height,
     getRelationTypeColor: relationUtils.getRelationTypeColor,
     getRelationTypeMarkerStartId: relationUtils.getRelationTypeMarkerStartId,
-    getInboundRelationTypeMarkerEndId: relationUtils.getInboundRelationTypeMarkerEndId,
-    getOutboundRelationTypeMarkerEndId: relationUtils.getOutboundRelationTypeMarkerEndId
+    getRelationTypeMarkerEndId: relationUtils.getRelationTypeMarkerEndId
 }));

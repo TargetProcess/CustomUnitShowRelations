@@ -1,9 +1,8 @@
 import ViewMode from 'src/const.view.modes';
 import RelationsData, { IRelation } from 'src/data';
-import relationDirection from 'src/relationDirections';
 import RelationsDraw from 'src/relations.draw';
 import { intersectRects, IRect } from 'src/utils/intersection';
-import * as _ from 'Underscore';
+import * as _ from 'underscore';
 
 export default class RelationsDrawList extends RelationsDraw {
     constructor(dataFetcher: RelationsData) {
@@ -27,13 +26,8 @@ export default class RelationsDrawList extends RelationsDraw {
 
             const offset = ((relation.index || 0) + 1) * 50;
 
-            if (relation.directionType === relationDirection.inbound) {
-                points.start.x = cardPos.x + offset;
-                points.end.x = targetPos.x + offset;
-            } else {
-                points.start.x = cardPos.x + gridRect.width - offset - 50;
-                points.end.x = targetPos.x + gridRect.width - offset - 50;
-            }
+            points.start.x = cardPos.x + gridRect.width - offset - 50;
+            points.end.x = targetPos.x + gridRect.width - offset - 50;
 
             if (points.start.y === points.end.y) {
                 if (targetPos.y > cardPos.y) {
@@ -52,8 +46,6 @@ export default class RelationsDrawList extends RelationsDraw {
     }
 
     public _processRelations(relations: IRelation[]) {
-        const relationsByDirectionType = _.groupBy(relations, (relation) => relation.directionType);
-        const relationWithIndexes = _.map(relationsByDirectionType, (list) => list.map((relation, index) => ({ index, ...relation })));
-        return _.reduce(relationWithIndexes, (res, v) => res.concat(v), [] as IRelation[]);
+        return relations.map((relation, index) => ({ ...relation, index }));
     }
 }

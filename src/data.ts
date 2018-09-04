@@ -1,36 +1,35 @@
 import * as $ from 'jquery';
-import DirectionType from 'src/relationDirections';
-import relationTypes, { IRelationType } from 'src/relationTypes';
+import { IRelationConfig } from 'src/legend/legend.model';
+import relationTypes from 'src/relationTypes';
 import globalConfigurator from 'tau/configurator';
 import * as globalBus from 'tau/core/global.bus';
 import * as _ from 'underscore';
 
 interface IRawRelation {
     ResourceType: string;
-    Id: string;
+    Id: number;
     Master: {
         ResourceType: string;
-        Id: string;
+        Id: number;
         Name: string;
     };
     Slave: {
         ResourceType: string;
-        Id: string;
+        Id: number;
         Name: string;
     };
     RelationType: {
         ResourceType: string;
-        Id: string;
+        Id: number;
         Name: string;
     };
 }
 
 export interface IRelation {
     index?: number;
-    main: { id: string };
-    entity: { id: string };
+    main: { id: number };
+    entity: { id: number };
     relationType: { name: string };
-    directionType: DirectionType;
 }
 
 interface IStore {
@@ -56,8 +55,7 @@ const loadPages = (url: string, params?: object): JQuery.Promise<any> =>
 const load = (resource: string, params?: object): JQuery.Promise<any> =>
     loadPages(`${globalConfigurator.getApplicationPath()}/api/v1/${resource}`, params);
 
-const processItem = (item: IRawRelation, directionType: DirectionType): IRelation => ({
-    directionType,
+const processItem = (item: IRawRelation): IRelation => ({
     relationType: {
         name: item.RelationType.Name
     },
@@ -88,7 +86,7 @@ globalBus.get().on('configurator.ready', (_e, configurator) => {
 export default class RelationsData {
     public updated: any;
 
-    private entityIds: string[] = [];
+    private entityIds: number[] = [];
     private _relations: IRelation[] = [];
     private filterConfig!: string[];
     private store: IStore | null = null;
@@ -100,7 +98,7 @@ export default class RelationsData {
         this.subscribeForRelationsUpdate();
     }
 
-    public load(entityIds: string[]): JQuery.Promise<IRelation[]> {
+    public load(entityIds: number[]): JQuery.Promise<IRelation[]> {
         if (_.intersection(entityIds, this.entityIds).length === entityIds.length) {
             return $.Deferred().resolve(this.getRelationsFiltered());
         }
@@ -115,7 +113,7 @@ export default class RelationsData {
         return this._getRelationsByIdsInternal(this._relations.map((r) => r.entity.id));
     }
 
-    public setFilterConfig(config: IRelationType[]) {
+    public setFilterConfig(config: IRelationConfig[]) {
         this.filterConfig = config.filter((c) => c.show)
             .map((relationType) => relationTypes.filter((r) => r.name === relationType.name)[0].name);
     }
@@ -153,7 +151,7 @@ export default class RelationsData {
         }, this);
     }
 
-    public _getRelationsByIdsInternal(entityIds: string[]): JQuery.Promise<IRelation[]> {
+    public _getRelationsByIdsInternal(entityIds: number[]): JQuery.Promise<IRelation[]> {
         if (!entityIds.length) {
             return $.Deferred().resolve();
         }
@@ -162,7 +160,7 @@ export default class RelationsData {
             where: `Master.Id in (${entityIds.join(',')})`,
             include: '[Slave[Id],Master[Id],RelationType[Name]]'
         }).then((items: IRawRelation[]) =>
-            items.map((v) => processItem(v, DirectionType.outbound))
+            items.map((v) => processItem(v))
         ).fail(() => {
             return [];
         });

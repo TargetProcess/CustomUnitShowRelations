@@ -3,20 +3,16 @@
      width="<%= width || 0 %>px" height="<%= height || 0%>px">
     <defs>
         <% relationTypes.forEach(function(v) { %>
-
-        <marker viewBox="0 0 10 10" id="<%= getRelationTypeMarkerStartId(v) %>" markerWidth="17" markerHeight="17"
-                refX="5" refY="5" markerUnits="userSpaceOnUse">
-            <circle cx="5" cy="5" r="2" style="stroke: none; fill:<%= getRelationTypeColor(v) %>;"/>
-        </marker>
-        <marker viewBox="0 0 10 10" id="<%= getOutboundRelationTypeMarkerEndId(v) %>" markerWidth="20" markerHeight="20"
-                orient="auto" refY="2" refX="0" markerUnits="userSpaceOnUse">
-            <path d="M0,0 L4,2 0,4" fill="<%= getRelationTypeColor(v) %>"/>
-        </marker>
-        <marker viewBox="0 0 10 10" id="<%= getInboundRelationTypeMarkerEndId(v) %>" markerWidth="20" markerHeight="20"
-                orient="auto" refY="2" refX="4" markerUnits="userSpaceOnUse">
-            <path d="M0,0 L4,2 0,4" fill="<%= getRelationTypeColor(v) %>" transform="rotate(180 2 2)"/>
-        </marker>
-
+            <% [true, false].forEach(function(hasViolations) { %>
+                <marker viewBox="0 0 10 10" id="<%= getRelationTypeMarkerStartId(v, hasViolations) %>" markerWidth="17" markerHeight="17"
+                        refX="5" refY="5" markerUnits="userSpaceOnUse">
+                    <circle cx="5" cy="5" r="2" style="stroke: none; fill:<%= getRelationTypeColor(v, hasViolations) %>;"/>
+                </marker>
+                <marker viewBox="0 0 10 10" id="<%= getRelationTypeMarkerEndId(v, hasViolations) %>" markerWidth="20" markerHeight="20"
+                        orient="auto" refY="2" refX="0" markerUnits="userSpaceOnUse">
+                    <path d="M0,0 L4,2 0,4" fill="<%= getRelationTypeColor(v, hasViolations) %>"/>
+                </marker>
+            <% }); %>
         <% }); %>
     </defs>
 </svg>

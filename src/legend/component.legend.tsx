@@ -3,12 +3,12 @@ import * as React from 'react';
 import labels from 'src/legend/component.legend.labels';
 import LegendRelations from 'src/legend/component.legend.relations';
 import { IOnSelectEventData } from 'src/legend/component.legend.wrapper';
-import { IRelationType } from 'src/relationTypes';
+import { IRelationConfig } from 'src/legend/legend.model';
 
 interface IComponentLegendProps {
     isExpanded: boolean;
     isVisible: boolean;
-    relations: IRelationType[];
+    relationConfigs: IRelationConfig[];
     onExpansionStateChange: (newState: boolean) => void;
     onRelationTypeSelect: (eventData: IOnSelectEventData) => void;
 }
@@ -58,7 +58,7 @@ export default class ComponentLegend extends React.Component<IComponentLegendPro
                         </button>
                     </div>
                 </div>
-                {this.props.isExpanded && <LegendRelations relations={this.props.relations} onSelect={this.props.onRelationTypeSelect}/>}
+                {this.props.isExpanded && <LegendRelations relationConfigs={this.props.relationConfigs} onSelect={this.props.onRelationTypeSelect}/>}
             </div>
         );
     }

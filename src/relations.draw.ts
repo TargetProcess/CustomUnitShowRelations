@@ -1,8 +1,7 @@
 import * as $ from 'jquery';
 import ViewMode from 'src/const.view.modes';
 import RelationsData, { IRelation } from 'src/data';
-import { cleanGridAndCards, getHighlightCardsByRelations } from 'src/relation.highlight';
-import DirectionType from 'src/relationDirections';
+import { buildCardsByRelationsHighlighter, cleanGridAndCards } from 'src/relation.highlight';
 import {
     bindArrowHighlightInteractions,
     redrawInteractionsHighlights,
@@ -12,18 +11,19 @@ import {
 import { IIntersection, intersectRects, IRect } from 'src/utils/intersection';
 import * as relationUtils from 'src/utils/relation.lines';
 import { createSvgFromTemplate } from 'src/utils/svg';
+import { checkForRelationViolationOnBoard } from 'src/utils/violations';
 import * as _ from 'underscore';
 
 export type ICardsGroupedByEntityId<T extends HTMLElement = HTMLElement> = Record<string, T[] | undefined>;
 
 export interface IArrow {
-    main: string;
-    slave: string;
+    mainEntityId: number;
+    slaveEntityId: number;
     arrowId: string;
     relation: IRelation;
     $lines: JQuery<SVGPathElement>;
-    fromEl: () => HTMLElement;
-    toEl: () => HTMLElement;
+    getMainElement: () => HTMLElement;
+    getSlaveElement: () => HTMLElement;
 }
 
 interface ICreateLineOptions {
@@ -35,8 +35,6 @@ interface ICreateLineOptions {
 }
 
 const isEmptyRect = ({ width, height }: ClientRect | DOMRect) => !width && !height;
-
-const ns = 'http://www.w3.org/2000/svg';
 
 export default class RelationsDraw<T extends HTMLElement = HTMLElement> {
     public cardsByEntityId: ICardsGroupedByEntityId<T> = {};
@@ -89,7 +87,7 @@ export default class RelationsDraw<T extends HTMLElement = HTMLElement> {
     }
 
     public getAndSaveRelations() {
-        const ids = Object.keys(this.cardsByEntityId).filter((v) => v.match(/^\d+$/));
+        const ids = Object.keys(this.cardsByEntityId).filter((v) => v.match(/^\d+$/)).map((key) => Number(key));
 
         return this.dataFetcher.load(ids)
             .then((allRelations) => {
@@ -102,8 +100,8 @@ export default class RelationsDraw<T extends HTMLElement = HTMLElement> {
             });
     }
 
-    public highlightCardsByRelations() {
-        return getHighlightCardsByRelations(
+    public buildCardsByRelationsHighlighter() {
+        return buildCardsByRelationsHighlighter(
             this.$grid,
             this.cardsByEntityId,
             this.viewMode
@@ -134,7 +132,7 @@ export default class RelationsDraw<T extends HTMLElement = HTMLElement> {
     }
 
     public drawRelation(relation: IRelation, sourceCard: T) {
-        const targetCards = this.cardsByEntityId[relation.entity.id]!;
+        const targetCards = this.cardsByEntityId[relation.entity.id];
 
         if (targetCards) {
             this._processTargetCards(targetCards)
@@ -150,7 +148,7 @@ export default class RelationsDraw<T extends HTMLElement = HTMLElement> {
         return cards;
     }
 
-    public _getElementSelectFunction = (id: string, el: T) => () => _.first((this.cardsByEntityId[id] || [])
+    public _getElementSelectFunction = (id: number, el: T) => () => _.first((this.cardsByEntityId[id] || [])
         .filter((c) => _.isEqual(
             JSON.parse(c.dataset.dataItem!).coords || '',
             JSON.parse(el.dataset.dataItem!).coords || ''
@@ -183,18 +181,18 @@ export default class RelationsDraw<T extends HTMLElement = HTMLElement> {
     }
 
     public _createLine(options: ICreateLineOptions) {
-        const line = document.createElementNS(ns, 'path');
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
 
         line.setAttribute('class', options.cssClass || '');
-        line.setAttributeNS(ns, 'd', options.bezierCoords);
-        line.setAttributeNS(ns, 'stroke', options.stroke || 'grey');
-        line.setAttributeNS(ns, 'fill', options.fill || 'none');
-        line.setAttributeNS(ns, 'stroke-width', options.strokeWidth || '1');
+        line.setAttribute('d', options.bezierCoords);
+        line.setAttribute('stroke', options.stroke || 'grey');
+        line.setAttribute('fill', options.fill || 'none');
+        line.setAttribute('stroke-width', options.strokeWidth || '1');
         return line;
     }
 
-    public drawRelationArrow(relation: IRelation, fromEl: T, toEl: T) {
-        const { cardRect, targetRect, tableRect, gridRect } = this._getClientRects(fromEl, toEl);
+    public drawRelationArrow(relation: IRelation, mainElement: T, slaveElement: T) {
+        const { cardRect, targetRect, tableRect, gridRect } = this._getClientRects(mainElement, slaveElement);
 
         // sometimes cards are removed from grid on draw start
         if (isEmptyRect(cardRect) || isEmptyRect(targetRect)) {
@@ -202,69 +200,67 @@ export default class RelationsDraw<T extends HTMLElement = HTMLElement> {
         }
 
         const {
-            main: { id: main },
-            entity: { id: slave },
-            relationType: { name: relationType },
-            directionType
+            main: { id: mainEntityId },
+            entity: { id: slaveEntityId },
+            relationType: { name: relationType }
         } = relation;
 
         const cardPos = this._getPositionFromRect(cardRect, tableRect);
         const targetPos = this._getPositionFromRect(targetRect, tableRect);
         const points = this._getIntersectionPoints(cardPos, targetPos, gridRect, relation);
 
-        if (points && this._isValidPoints(points)) {
-            const bezierCoords = relationUtils.generateBezierCoords(points.start, points.end, directionType === DirectionType.inbound);
-            const color = relationUtils.getRelationColor(relationType);
-            const helperLine = this._createLine({
-                cssClass: 'helperLine',
-                bezierCoords,
-                stroke: color,
-                strokeWidth: '6'
-            });
-
-            const line = this._createLine({
-                cssClass: 'line',
-                bezierCoords,
-                stroke: color,
-                strokeWidth: '1.2'
-            });
-
-            if (directionType === DirectionType.inbound) {
-                line.setAttributeNS(ns, 'marker-start', `url(#${relationUtils.getInboundRelationTypeMarkerEndId(relation.relationType)})`);
-                line.setAttributeNS(ns, 'marker-end', `url(#${relationUtils.getRelationTypeMarkerStartId(relation.relationType)})`);
-            } else {
-                line.setAttributeNS(ns, 'marker-start', `url(#${relationUtils.getRelationTypeMarkerStartId(relation.relationType)})`);
-                line.setAttributeNS(ns, 'marker-end', `url(#${relationUtils.getOutboundRelationTypeMarkerEndId(relation.relationType)})`);
-            }
-
-            this.$svg!.append(line);
-            this.$svg!.append(helperLine);
-
-            const $lines = $(helperLine).add(line);
-
-            const arrow: IArrow = {
-                $lines,
-                main,
-                slave,
-                arrowId: `${main}-${slave}`,
-                relation,
-                fromEl: this._getElementSelectFunction(main, fromEl),
-                toEl: this._getElementSelectFunction(slave, toEl)
-            };
-
-            bindArrowHighlightInteractions($lines, main, slave, relationType);
-
-            this.arrows.push(arrow);
+        if (!points || !this._isValidPoints(points)) {
+            return;
         }
+
+        const bezierCoords = relationUtils.generateBezierCoords(points.start, points.end);
+
+        const hasViolations = this.viewMode === ViewMode.BOARD && checkForRelationViolationOnBoard(mainElement, slaveElement);
+        const color = relationUtils.getRelationColor(relationType, hasViolations);
+        const helperLine = this._createLine({
+            cssClass: 'helperLine',
+            bezierCoords,
+            stroke: color,
+            strokeWidth: '6'
+        });
+
+        const line = this._createLine({
+            cssClass: 'line',
+            bezierCoords,
+            stroke: color,
+            strokeWidth: '1.2'
+        });
+
+        line.setAttribute('marker-start', `url(#${relationUtils.getRelationTypeMarkerStartId(relation.relationType, hasViolations)})`);
+        line.setAttribute('marker-end', `url(#${relationUtils.getRelationTypeMarkerEndId(relation.relationType, hasViolations)})`);
+
+        this.$svg!.append(line);
+        this.$svg!.append(helperLine);
+
+        const $lines = $(helperLine).add(line);
+
+        const arrow: IArrow = {
+            $lines,
+            mainEntityId,
+            slaveEntityId,
+            arrowId: `${mainEntityId}-${slaveEntityId}`,
+            relation,
+            getMainElement: this._getElementSelectFunction(mainEntityId, mainElement),
+            getSlaveElement: this._getElementSelectFunction(slaveEntityId, slaveElement)
+        };
+
+        bindArrowHighlightInteractions($lines, mainEntityId, slaveEntityId, relationType);
+
+        this.arrows.push(arrow);
     }
 
     public _updateRelationArrow = (arrow: IArrow) => {
-        const fromEl = arrow.fromEl();
-        const toEl = arrow.toEl();
+        const mainElement = arrow.getMainElement();
+        const slaveElement = arrow.getSlaveElement();
 
-        if (fromEl && toEl) {
+        if (mainElement && slaveElement) {
             arrow.$lines.show();
-            const { cardRect, targetRect, tableRect, gridRect } = this._getClientRects(fromEl, toEl);
+            const { cardRect, targetRect, tableRect, gridRect } = this._getClientRects(mainElement, slaveElement);
             const cardPos = this._getPositionFromRect(cardRect, tableRect);
             const targetPos = this._getPositionFromRect(targetRect, tableRect);
             const points = this._getIntersectionPoints(cardPos, targetPos, gridRect, arrow.relation);
@@ -276,9 +272,9 @@ export default class RelationsDraw<T extends HTMLElement = HTMLElement> {
 
             if (this._isValidPoints(points) && !(isEmptyRect(cardRect) || isEmptyRect(targetRect))) {
                 const bezierCoords = relationUtils
-                    .generateBezierCoords(points.start, points.end, arrow.relation.directionType === DirectionType.inbound);
+                    .generateBezierCoords(points.start, points.end);
 
-                arrow.$lines.each((_index, l) => l.setAttributeNS(ns, 'd', bezierCoords));
+                arrow.$lines.each((_index, l) => l.setAttribute('d', bezierCoords));
             } else {
                 arrow.$lines.remove();
                 _.compact(this.arrows);
@@ -296,7 +292,7 @@ export default class RelationsDraw<T extends HTMLElement = HTMLElement> {
 
             if (this.updateGridAndTable()) {
                 this.arrows.forEach(this._updateRelationArrow);
-                this.applyRelationsAndCards([this.highlightCardsByRelations()]);
+                this.applyRelationsAndCards([this.buildCardsByRelationsHighlighter()]);
             }
         }
     }
@@ -314,15 +310,15 @@ export default class RelationsDraw<T extends HTMLElement = HTMLElement> {
 
                     this.applyRelationsAndCards([
                         this._getDrawRelationsForCard(),
-                        this.highlightCardsByRelations()
+                        this.buildCardsByRelationsHighlighter()
                     ]);
                     redrawInteractionsHighlights();
                 });
         }
     }
 
-    public updateRelationsForCard = (id: string) => {
-        this.arrows.filter(({ main, slave }) => main === id || slave === id).forEach(this._updateRelationArrow);
+    public updateRelationsForCard = (id: number) => {
+        this.arrows.filter(({ mainEntityId, slaveEntityId }) => mainEntityId === id || slaveEntityId === id).forEach(this._updateRelationArrow);
     }
 
     public removeAll() {

@@ -1,29 +1,24 @@
-import { extend } from 'Underscore';
-
-const doAction = (param: unknown, action: () => void) => {
-    if (param) {
-        action();
-    }
-};
+import { extend } from 'underscore';
 
 export interface ITausTrackData {
     name: string;
-    fromId?: string;
-    toId?: string;
+    mainEntityId?: number;
+    slaveEntityId?: number;
     relationType?: string;
 }
 
-export default ({ name, fromId, toId, relationType }: ITausTrackData) => {
+export default ({ name, mainEntityId, slaveEntityId, relationType }: ITausTrackData) => {
+    if (!window.taus) {
+        return;
+    }
+
     const trackData = {
         name: `relations-${name}`,
         tags: ['relations']
     };
 
-    doAction(fromId, () => extend(trackData, { fromId }));
-    doAction(toId, () => extend(trackData, { toId }));
-    doAction(relationType, () => extend(trackData, { relationType }));
-
-    if (window.taus) {
-        window.taus.track(trackData);
-    }
+    mainEntityId && extend(trackData, { mainEntityId });
+    slaveEntityId && extend(trackData, { slaveEntityId });
+    relationType && extend(trackData, { relationType });
+    window.taus.track(trackData);
 };

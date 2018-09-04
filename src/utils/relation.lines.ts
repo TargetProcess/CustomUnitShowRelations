@@ -1,16 +1,15 @@
 import relationTypes from 'src/relationTypes';
 import { IPoint } from 'src/utils/intersection';
 
-export const getRelationTypeMarkerStartId = ({ name }: any) => `${name}_start`;
-export const getInboundRelationTypeMarkerEndId = ({ name }: any) => `${name}_inbound_end`;
-export const getOutboundRelationTypeMarkerEndId = ({ name }: any) => `${name}_outbound_end`;
-export const getRelationTypeColor = ({ style }: any) => style.color;
-export const getRelationColor = (relationType: string) =>
-    getRelationTypeColor(relationTypes.find(({ name }) => name === relationType));
-export const generateBezierCoords = (start: IPoint, end: IPoint, down = false) => {
+export const getRelationTypeMarkerStartId = ({ name }: any, hasViolations: boolean) => `${name}${hasViolations ? '_violated' : ''}_start`;
+export const getRelationTypeMarkerEndId = ({ name }: any, hasViolations: boolean) => `${name}${hasViolations ? '_violated' : ''}_outbound_end`;
+export const getRelationTypeColor = ({ style }: any, hasViolations: boolean) => hasViolations ? style.violatedColor : style.color;
+export const getRelationColor = (relationType: string, hasViolations: boolean) =>
+    getRelationTypeColor(relationTypes.find(({ name }) => name === relationType), hasViolations);
+export const generateBezierCoords = (start: IPoint, end: IPoint) => {
     const points = [`M${start.x},${start.y}`];
 
-    const rad = Math.PI / 48 * (down ? -1 : 1);
+    const rad = Math.PI / 48;
 
     const cos = Math.cos(rad);
     const sin = Math.sin(rad);

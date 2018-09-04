@@ -81,31 +81,37 @@ const unHighlightCards = (id: string) => {
     }
 };
 
-const getArrowId = (main: string, slave: string) => `${main}-${slave}`;
+const getArrowId = (mainEntityId: number, slave: number) => `${mainEntityId}-${slave}`;
 
-const highlightRelation = (main: string, slave: string, click = false) => {
-    [String(main), String(slave)].forEach(highlightCards);
-    click && highlightArrows(getArrowId(main, slave));
+const highlightRelation = (mainEntityId: number, slaveEntityId: number, wasClicked = false) => {
+    [String(mainEntityId), String(slaveEntityId)].forEach(highlightCards);
+
+    if (wasClicked) {
+        highlightArrows(getArrowId(mainEntityId, slaveEntityId));
+    }
 };
-const unHighlightRelation = (main: string, slave: string, click = false) => {
-    [String(main), String(slave)].forEach(unHighlightCards);
-    click && unHighlightArrows(getArrowId(main, slave));
+const unHighlightRelation = (mainEntityId: number, slaveEntityId: number, wasClicked = false) => {
+    [String(mainEntityId), String(slaveEntityId)].forEach(unHighlightCards);
+
+    if (wasClicked) {
+        unHighlightArrows(getArrowId(mainEntityId, slaveEntityId));
+    }
 };
 
-const getClickHandler = (fromId: string, toId: string, relationType: string) => () => {
-    const arrowId = getArrowId(fromId, toId);
-    const notClickedBefore = !clickedArrows[arrowId];
+const getClickHandler = (mainEntityId: number, slaveEntityId: number, relationType: string) => () => {
+    const arrowId = getArrowId(mainEntityId, slaveEntityId);
+    const wasntClickedBefore = !clickedArrows[arrowId];
 
-    clickedArrows[arrowId] = notClickedBefore;
+    clickedArrows[arrowId] = wasntClickedBefore;
 
     tausTrack({
-        name: notClickedBefore ? 'fix-arrow' : 'unfix-arrow',
-        fromId,
-        toId,
+        name: wasntClickedBefore ? 'fix-arrow' : 'unfix-arrow',
+        mainEntityId,
+        slaveEntityId,
         relationType
     });
 
-    notClickedBefore ? highlightRelation(fromId, toId, true) : unHighlightRelation(fromId, toId, true);
+    wasntClickedBefore ? highlightRelation(mainEntityId, slaveEntityId, true) : unHighlightRelation(mainEntityId, slaveEntityId, true);
 
     return false;
 };
@@ -115,10 +121,10 @@ const clearHighLights = () => {
     [...highlightedCardsArray].forEach(unHighlightCards);
 };
 
-export const bindArrowHighlightInteractions = ($lines: JQuery<SVGPathElement>, main: string, slave: string, relationType: string) => {
-    $lines.on('mouseenter', () => highlightRelation(main, slave));
-    $lines.on('mouseleave', () => unHighlightRelation(main, slave));
-    $lines.on('mousedown', getClickHandler(main, slave, relationType));
+export const bindArrowHighlightInteractions = ($lines: JQuery<SVGPathElement>, mainEntityId: number, slaveEntityId: number, relationType: string) => {
+    $lines.on('mouseenter', () => highlightRelation(mainEntityId, slaveEntityId));
+    $lines.on('mouseleave', () => unHighlightRelation(mainEntityId, slaveEntityId));
+    $lines.on('mousedown', getClickHandler(mainEntityId, slaveEntityId, relationType));
 };
 
 export const redrawInteractionsHighlights = () => {

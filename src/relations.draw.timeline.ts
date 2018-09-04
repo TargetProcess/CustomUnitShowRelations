@@ -22,32 +22,29 @@ export default class RelationsDrawTimeline extends RelationsDraw<ICardElementWit
     }
 
     public _getCardsGroupedByEntityId() {
-        const groupedCards = _.groupBy(
+        const groupedCards = _.groupBy<ICardElementWithMetadata>(
             [
                 ...this.$grid.find('.tau-backlog-body .i-role-card, .tau-backlog-body .tau-sortable__placeholder')
                     .toArray()
-                    .map((card) => ({
-                        ...card,
+                    .map((card) => (_.extend(card, {
                         sectionType: 'backlog',
                         holder: card,
                         coords: JSON.parse(card.dataset.dataItem!).coords
-                    })),
+                    }))),
                 ...this.$grid.find('.tau-card-planner:not(.tau-section-invisible) .i-role-card, .tau-card-planner:not(.tau-section-invisible) .tau-sortable__placeholder')
                     .toArray()
-                    .map((card) => ({
-                        ...card,
+                    .map((card) => (_.extend(card, {
                         sectionType: 'planned',
                         holder: card.parentElement,
                         coords: JSON.parse(card.dataset.dataItem!).coords
-                    })),
+                    }))),
                 ...this.$grid.find('.tau-timeline-card > .tau-card-holder:not(.tau-section-invisible) .i-role-card')
                     .toArray()
-                    .map((card) => ({
-                        ...card,
+                    .map((card) => (_.extend(card, {
                         sectionType: 'actual',
                         holder: card,
                         coords: JSON.parse(card.dataset.dataItem!).coords
-                    }))
+                    })))
             ],
             (v) => v.getAttribute('data-entity-id'));
 
@@ -86,7 +83,7 @@ export default class RelationsDrawTimeline extends RelationsDraw<ICardElementWit
         return points;
     }
 
-    public _getElementSelectFunction = (id: string, el: ICardElementWithMetadata) =>
+    public _getElementSelectFunction = (id: number, el: ICardElementWithMetadata) =>
         () => _.first((this.cardsByEntityId[id] || [])
             .filter((c) => c.sectionType === el.sectionType && el.coords && _.isEqual(c.coords || '', el.coords || '')))!
 

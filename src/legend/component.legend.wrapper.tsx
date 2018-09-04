@@ -1,6 +1,6 @@
 import * as React from 'react';
 import ComponentLegend from 'src/legend/component.legend';
-import { IRelationType } from 'src/relationTypes';
+import { IRelationConfig } from 'src/legend/legend.model';
 
 export interface IOnSelectEventData {
     name: string;
@@ -14,7 +14,7 @@ interface IComponentLegendWrapperProps {
 interface IComponentLegendWrapperState {
     isVisible: boolean;
     isExpanded: boolean;
-    relations: IRelationType[];
+    relationConfigs: IRelationConfig[];
     onExpansionStateChange: (newState: boolean) => void;
     onRelationTypeSelect: (eventData: IOnSelectEventData) => void;
 }
