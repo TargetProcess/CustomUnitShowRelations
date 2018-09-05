@@ -2,6 +2,7 @@ import RelationsData from 'src/data';
 import { IBoardSettings } from 'src/index';
 import LegendModel from 'src/legend/legend.model';
 import RelationDraw from 'src/relations.draw';
+import ValidationStrategy from 'src/validation/strategies/strategy';
 import * as _ from 'underscore';
 
 export default class RelationsDrawModel {
@@ -9,10 +10,10 @@ export default class RelationsDrawModel {
     private legendModel!: LegendModel;
     private relationsDraw!: RelationDraw;
 
-    constructor(RelationsDraw: typeof RelationDraw, boardSettings: IBoardSettings) {
+    constructor(RelationsDraw: typeof RelationDraw, validationStrategy: ValidationStrategy, boardSettings: IBoardSettings) {
         this.dataFetcher = new RelationsData();
         this.dataFetcher.updated.add(() => this.dataFetcher.refresh().then(() => this.redraw()));
-        this.setConfig(RelationsDraw, boardSettings);
+        this.setConfig(RelationsDraw, validationStrategy, boardSettings);
     }
 
     public executeDrawOperation = (operation: () => void) => {
@@ -35,7 +36,7 @@ export default class RelationsDrawModel {
         { leading: false }
     );
 
-    public setConfig(RelationsDraw: typeof RelationDraw, boardSettings: IBoardSettings) {
+    public setConfig(RelationsDraw: typeof RelationDraw, validationStrategy: ValidationStrategy, boardSettings: IBoardSettings) {
         if (this.relationsDraw) {
             this.relationsDraw.removeAll();
         }
@@ -45,7 +46,7 @@ export default class RelationsDrawModel {
         }
 
         this.dataFetcher.subscribeForRelationsUpdate();
-        this.relationsDraw = new RelationsDraw(this.dataFetcher);
+        this.relationsDraw = new RelationsDraw(this.dataFetcher, validationStrategy);
         this.legendModel = new LegendModel(this.relationsDraw, this.dataFetcher, boardSettings);
     }
 }

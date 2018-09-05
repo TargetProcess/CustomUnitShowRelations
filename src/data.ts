@@ -1,7 +1,6 @@
-import * as $ from 'jquery';
 import { IRelationConfig } from 'src/legend/legend.model';
 import relationTypes from 'src/relationTypes';
-import globalConfigurator from 'tau/configurator';
+import { load } from 'src/utils/api';
 import * as globalBus from 'tau/core/global.bus';
 import * as _ from 'underscore';
 
@@ -28,7 +27,7 @@ interface IRawRelation {
 export interface IRelation {
     index?: number;
     main: { id: number };
-    entity: { id: number };
+    slave: { id: number };
     relationType: { name: string };
 }
 
@@ -38,28 +37,11 @@ interface IStore {
     on(event: object, callback: () => void, context: object): void;
 }
 
-const loadSimple = (url: string, params?: object) =>
-    $.ajax({
-        type: 'get',
-        url,
-        contentType: 'application/json; charset=utf-8',
-        dataType: 'json',
-        data: params
-    });
-
-const loadPages = (url: string, params?: object): JQuery.Promise<any> =>
-    loadSimple(url, params)
-        .then(({ Items, Next }) =>
-            (Next ? (loadPages(Next).then((pageItems) => Items.concat(pageItems))) : Items));
-
-const load = (resource: string, params?: object): JQuery.Promise<any> =>
-    loadPages(`${globalConfigurator.getApplicationPath()}/api/v1/${resource}`, params);
-
 const processItem = (item: IRawRelation): IRelation => ({
     relationType: {
         name: item.RelationType.Name
     },
-    entity: {
+    slave: {
         id: item.Slave.Id
     },
     main: {
@@ -98,9 +80,9 @@ export default class RelationsData {
         this.subscribeForRelationsUpdate();
     }
 
-    public load(entityIds: number[]): JQuery.Promise<IRelation[]> {
+    public load(entityIds: number[]) {
         if (_.intersection(entityIds, this.entityIds).length === entityIds.length) {
-            return $.Deferred().resolve(this.getRelationsFiltered());
+            return Promise.resolve(this.getRelationsFiltered());
         }
         this.entityIds = entityIds;
 
@@ -110,7 +92,7 @@ export default class RelationsData {
     }
 
     public refresh() {
-        return this._getRelationsByIdsInternal(this._relations.map((r) => r.entity.id));
+        return this._getRelationsByIdsInternal(this._relations.map((r) => r.slave.id));
     }
 
     public setFilterConfig(config: IRelationConfig[]) {
@@ -151,18 +133,15 @@ export default class RelationsData {
         }, this);
     }
 
-    public _getRelationsByIdsInternal(entityIds: number[]): JQuery.Promise<IRelation[]> {
+    public _getRelationsByIdsInternal(entityIds: number[]) {
         if (!entityIds.length) {
-            return $.Deferred().resolve();
+            return Promise.resolve([]);
         }
 
-        return load('relations', {
+        return load<IRawRelation[]>('relations', {
             where: `Master.Id in (${entityIds.join(',')})`,
             include: '[Slave[Id],Master[Id],RelationType[Name]]'
-        }).then((items: IRawRelation[]) =>
-            items.map((v) => processItem(v))
-        ).fail(() => {
-            return [];
-        });
+        })
+        .then((items) => items.map(processItem), () => [] as IRelation[]);
     }
 }

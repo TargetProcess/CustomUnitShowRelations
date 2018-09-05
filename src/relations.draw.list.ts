@@ -2,11 +2,12 @@ import ViewMode from 'src/const.view.modes';
 import RelationsData, { IRelation } from 'src/data';
 import RelationsDraw from 'src/relations.draw';
 import { intersectRects, IRect } from 'src/utils/intersection';
+import ValidationStrategy from 'src/validation/strategies/strategy';
 import * as _ from 'underscore';
 
 export default class RelationsDrawList extends RelationsDraw {
-    constructor(dataFetcher: RelationsData) {
-        super(dataFetcher);
+    constructor(dataFetcher: RelationsData, validationStrategy: ValidationStrategy) {
+        super(dataFetcher, validationStrategy);
         this.viewMode = ViewMode.LIST;
     }
 

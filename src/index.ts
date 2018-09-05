@@ -5,9 +5,27 @@ import RelationsDraw from 'src/relations.draw';
 import RelationsDrawList from 'src/relations.draw.list';
 import RelationsDrawModel from 'src/relations.draw.model';
 import RelationsDrawTimeline from 'src/relations.draw.timeline';
+import ValidationStrategy from 'src/validation/strategies/strategy';
+import * as validationStrategyBuilder from 'src/validation/strategy_builder';
 import { onBoardCreate, onDetailsCreate, onListCreate, onTimelineCreate } from 'tau/api/board/v1';
 
 import 'src/index.css';
+
+export interface IBoard {
+    boardSettings: IBoardSettings;
+    axes: {
+        x: IBoardAxe[];
+        y: IBoardAxe[];
+    };
+}
+
+export interface IBoardAxe {
+    id: string;
+    entity: {
+        id: number;
+        type: string;
+    };
+}
 
 export interface IBoardSettings {
     settings: {
@@ -18,11 +36,11 @@ export interface IBoardSettings {
 
 let currentModel: RelationsDrawModel | null = null;
 
-const createModel = (RelationsDrawConstructor: typeof RelationsDraw, boardSettings: IBoardSettings) => {
+const createModel = (RelationsDrawConstructor: typeof RelationsDraw, validationStrategy: ValidationStrategy<any>, boardSettings: IBoardSettings) => {
     if (!currentModel) {
-        currentModel = new RelationsDrawModel(RelationsDrawConstructor, boardSettings);
+        currentModel = new RelationsDrawModel(RelationsDrawConstructor, validationStrategy, boardSettings);
     } else {
-        currentModel.setConfig(RelationsDrawConstructor, boardSettings);
+        currentModel.setConfig(RelationsDrawConstructor, validationStrategy, boardSettings);
     }
 
     return currentModel;
@@ -30,25 +48,25 @@ const createModel = (RelationsDrawConstructor: typeof RelationsDraw, boardSettin
 
 const initialize = () => {
     onDetailsCreate((details) => {
-        createModel(RelationsDraw, details.boardSettings);
+        createModel(RelationsDraw, validationStrategyBuilder.buildStrategyDetailsBoard(), details.boardSettings);
     });
 
-    onBoardCreate((board) => {
-        const model = createModel(RelationsDraw, board.board.boardSettings);
+    onBoardCreate((boardModel) => {
+        const model = createModel(RelationsDraw, validationStrategyBuilder.buildStrategyForBoard(boardModel.board), boardModel.board.boardSettings);
 
-        board.onCellsUpdate(model.redraw);
-        board.onCardDragging(model.redraw);
-        board.onColumnResize(model.redraw);
-        board.onPagingAnimated(model.redraw);
-        board.onZoomLevelChanged(model.redraw);
-        board.onExpandCollapseAxis(model.redraw);
+        boardModel.onCellsUpdate(model.redraw);
+        boardModel.onCardDragging(model.redraw);
+        boardModel.onColumnResize(model.redraw);
+        boardModel.onPagingAnimated(model.redraw);
+        boardModel.onZoomLevelChanged(model.redraw);
+        boardModel.onExpandCollapseAxis(model.redraw);
     });
 
     onTimelineCreate((timeline) => {
         const timelineEvents = timeline.events;
 
         timelineEvents.onRender.once(() => {
-            const model = createModel(RelationsDrawTimeline as any, timeline.boardSettings);
+            const model = createModel(RelationsDrawTimeline as any, validationStrategyBuilder.buildStrategyForTimeline(), timeline.boardSettings);
 
             $('.tau-timeline-canvas').scroll((evt) => {
                 model.update({ y: evt.target.scrollTop });
@@ -84,7 +102,7 @@ const initialize = () => {
         const listEvents = list.events;
 
         listEvents.onTreeRendered.once(() => {
-            const model = createModel(RelationsDrawList as any, list.boardSettings);
+            const model = createModel(RelationsDrawList as any, validationStrategyBuilder.buildStrategyForList(), list.boardSettings);
 
             listEvents.onTreeRendered.add(() => {
                 model.redraw();

@@ -3,6 +3,7 @@ import viewModes from 'src/const.view.modes';
 import RelationsData from 'src/data';
 import RelationsDraw from 'src/relations.draw';
 import { intersectRects, IRect } from 'src/utils/intersection';
+import ValidationStrategy from 'src/validation/strategies/strategy';
 import * as _ from 'underscore';
 
 interface ICardElementWithMetadata extends HTMLElement {
@@ -12,8 +13,8 @@ interface ICardElementWithMetadata extends HTMLElement {
 }
 
 export default class RelationsDrawTimeline extends RelationsDraw<ICardElementWithMetadata> {
-    constructor(dataFetcher: RelationsData) {
-        super(dataFetcher);
+    constructor(dataFetcher: RelationsData, validationStrategy: ValidationStrategy) {
+        super(dataFetcher, validationStrategy);
         this.viewMode = viewModes.TIMELINE;
     }
 
@@ -21,7 +22,7 @@ export default class RelationsDrawTimeline extends RelationsDraw<ICardElementWit
         this.$grid.find('.tau-timeline.i-role-timeline-column').append($svg);
     }
 
-    public _getCardsGroupedByEntityId() {
+    public _getCardsGroupedById() {
         const groupedCards = _.groupBy<ICardElementWithMetadata>(
             [
                 ...this.$grid.find('.tau-backlog-body .i-role-card, .tau-backlog-body .tau-sortable__placeholder')
@@ -84,7 +85,7 @@ export default class RelationsDrawTimeline extends RelationsDraw<ICardElementWit
     }
 
     public _getElementSelectFunction = (id: number, el: ICardElementWithMetadata) =>
-        () => _.first((this.cardsByEntityId[id] || [])
+        () => _.first((this.cardsById[id] || [])
             .filter((c) => c.sectionType === el.sectionType && el.coords && _.isEqual(c.coords || '', el.coords || '')))!
 
     public _getClientRects(fromEl: ICardElementWithMetadata, toEl: ICardElementWithMetadata) {

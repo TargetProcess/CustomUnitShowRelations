@@ -20,3 +20,6 @@ dist
 # Editors
 .idea
 .vscode
+
+# MacOS trash
+.DS_Store

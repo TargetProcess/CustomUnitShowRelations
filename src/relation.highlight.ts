@@ -50,7 +50,7 @@ export function buildCardsByRelationsHighlighter($grid: JQuery, cardsByEntityId:
     const getCardsByEntityId = (entityId: number) => cardsByEntityId[entityId] || [];
 
     const highlightCardsByRelation = (relation: IRelation) => {
-        getCardsByEntityId(relation.entity.id).forEach((card) => {
+        getCardsByEntityId(relation.slave.id).forEach((card) => {
             highlightCard(card, viewMode);
         });
     };

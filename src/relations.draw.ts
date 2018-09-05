@@ -11,7 +11,7 @@ import {
 import { IIntersection, intersectRects, IRect } from 'src/utils/intersection';
 import * as relationUtils from 'src/utils/relation.lines';
 import { createSvgFromTemplate } from 'src/utils/svg';
-import { checkForRelationViolationOnBoard } from 'src/utils/violations';
+import ValidationStrategy from 'src/validation/strategies/strategy';
 import * as _ from 'underscore';
 
 export type ICardsGroupedByEntityId<T extends HTMLElement = HTMLElement> = Record<string, T[] | undefined>;
@@ -37,19 +37,20 @@ interface ICreateLineOptions {
 const isEmptyRect = ({ width, height }: ClientRect | DOMRect) => !width && !height;
 
 export default class RelationsDraw<T extends HTMLElement = HTMLElement> {
-    public cardsByEntityId: ICardsGroupedByEntityId<T> = {};
-    public offset = 0;
-    public groupedRelations: Record<string, IRelation[]> = {};
-    public relations: IRelation[] | null = null;
-    public $table!: JQuery;
-    public $grid!: JQuery;
-    public $svg: JQuery | null = null;
-    public arrows: IArrow[] = [];
-    public viewMode = ViewMode.BOARD;
-    public dataFetcher: RelationsData;
+    protected cardsById: ICardsGroupedByEntityId<T> = {};
+    protected offset = 0;
+    protected $table!: JQuery;
+    protected $grid!: JQuery;
+    protected $svg: JQuery | null = null;
+    protected viewMode = ViewMode.BOARD;
+    private relationsByMainEntityId: Record<string, IRelation[]> = {};
+    private arrows: IArrow[] = [];
+    private dataFetcher: RelationsData;
+    private validationStrategy: ValidationStrategy;
 
-    constructor(dataFetcher: RelationsData) {
+    constructor(dataFetcher: RelationsData, validationStrategy: ValidationStrategy) {
         this.dataFetcher = dataFetcher;
+        this.validationStrategy = validationStrategy;
     }
 
     public _appendSvgToGrid($svg: JQuery) {
@@ -68,7 +69,7 @@ export default class RelationsDraw<T extends HTMLElement = HTMLElement> {
         this.$table = this._getTable();
 
         if (this.$grid.length > 0 && this.$table.length > 0) {
-            this.cardsByEntityId = this._getCardsGroupedByEntityId();
+            this.cardsById = this._getCardsGroupedById();
 
             if (!this.$svg) {
                 this.$svg = this.createSvg();
@@ -82,57 +83,56 @@ export default class RelationsDraw<T extends HTMLElement = HTMLElement> {
         return this.$grid.children('table');
     }
 
-    public _getCardsGroupedByEntityId() {
+    public _getCardsGroupedById() {
         return _.groupBy(this.$grid.find('.i-role-card, .tau-sortable__placeholder').toArray() as T[], (v) => v.getAttribute('data-entity-id'));
     }
 
     public getAndSaveRelations() {
-        const ids = Object.keys(this.cardsByEntityId).filter((v) => v.match(/^\d+$/)).map((key) => Number(key));
+        const ids = Object.keys(this.cardsById).filter((v) => v.match(/^\d+$/)).map((key) => Number(key));
 
         return this.dataFetcher.load(ids)
             .then((allRelations) => {
                 const relations = allRelations
-                    .filter(({ entity: { id } }) => this.cardsByEntityId[id])
+                    .filter(({ slave: { id } }) => !!this.cardsById[id])
                     .map((relation, index) => ({ index, ...relation }));
 
-                this.relations = relations;
-                this.groupedRelations = _.groupBy(relations, ({ main: { id } }) => id);
+                this.relationsByMainEntityId = _.groupBy(relations, ({ main: { id } }) => id);
             });
     }
 
     public buildCardsByRelationsHighlighter() {
         return buildCardsByRelationsHighlighter(
             this.$grid,
-            this.cardsByEntityId,
+            this.cardsById,
             this.viewMode
         );
     }
 
     public applyRelationsAndCards(functions: Array<(relations: IRelation[], card: T) => void>) {
-        Object.keys(this.groupedRelations)
+        Object.keys(this.relationsByMainEntityId)
             .forEach((entityId) => {
-                const entityRelations = this.groupedRelations[entityId];
-                const entityCards = this.cardsByEntityId[entityId] || [];
+                const relations = this.relationsByMainEntityId[entityId];
+                const cards = this.cardsById[entityId] || [];
 
-                entityCards.forEach((card) => {
-                    functions.forEach((func) => func(entityRelations, card));
+                cards.forEach((card) => {
+                    functions.forEach((func) => func(relations, card));
                 });
             });
     }
 
     public _getDrawRelationsForCard = () => {
-        updateInteractionsData(this.cardsByEntityId, this.arrows, this.viewMode);
+        updateInteractionsData(this.cardsById, this.arrows, this.viewMode);
         return this._drawRelationsForCard;
     }
 
     public _drawRelationsForCard = (relations: IRelation[], sourceCard: T | null = null) => {
         this._processRelations(relations).forEach((rel) => {
-            this.drawRelation(rel, sourceCard || _.first(this.cardsByEntityId[rel.main.id]!)!);
+            this.drawRelation(rel, sourceCard || _.first(this.cardsById[rel.main.id]!)!);
         });
     }
 
     public drawRelation(relation: IRelation, sourceCard: T) {
-        const targetCards = this.cardsByEntityId[relation.entity.id];
+        const targetCards = this.cardsById[relation.slave.id];
 
         if (targetCards) {
             this._processTargetCards(targetCards)
@@ -148,7 +148,7 @@ export default class RelationsDraw<T extends HTMLElement = HTMLElement> {
         return cards;
     }
 
-    public _getElementSelectFunction = (id: number, el: T) => () => _.first((this.cardsByEntityId[id] || [])
+    public _getElementSelectFunction = (id: number, el: T) => () => _.first((this.cardsById[id] || [])
         .filter((c) => _.isEqual(
             JSON.parse(c.dataset.dataItem!).coords || '',
             JSON.parse(el.dataset.dataItem!).coords || ''
@@ -201,7 +201,7 @@ export default class RelationsDraw<T extends HTMLElement = HTMLElement> {
 
         const {
             main: { id: mainEntityId },
-            entity: { id: slaveEntityId },
+            slave: { id: slaveEntityId },
             relationType: { name: relationType }
         } = relation;
 
@@ -215,7 +215,7 @@ export default class RelationsDraw<T extends HTMLElement = HTMLElement> {
 
         const bezierCoords = relationUtils.generateBezierCoords(points.start, points.end);
 
-        const hasViolations = this.viewMode === ViewMode.BOARD && checkForRelationViolationOnBoard(mainElement, slaveElement);
+        const hasViolations = this.validationStrategy.isRelationViolated(mainElement, slaveElement);
         const color = relationUtils.getRelationColor(relationType, hasViolations);
         const helperLine = this._createLine({
             cssClass: 'helperLine',
@@ -302,7 +302,7 @@ export default class RelationsDraw<T extends HTMLElement = HTMLElement> {
             this.arrows = [];
             this.$svg!.find('path.line, path.helperLine').remove();
 
-            this.getAndSaveRelations()
+            Promise.all([this.getAndSaveRelations(), this.validationStrategy.initialize()])
                 .then(() => {
                     if (!this.$svg) {
                         return;
