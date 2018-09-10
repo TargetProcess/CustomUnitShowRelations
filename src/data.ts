@@ -1,5 +1,5 @@
 import { IRelationConfig } from 'src/legend/legend.model';
-import relationTypes from 'src/relationTypes';
+import relationTypes from 'src/relation_types';
 import { load } from 'src/utils/api';
 import * as globalBus from 'tau/core/global.bus';
 import * as _ from 'underscore';

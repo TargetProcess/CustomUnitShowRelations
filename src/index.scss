@@ -111,7 +111,7 @@
             pointer-events: all;
             cursor: pointer;
 
-            &:hover {
+            &:hover, &__focused {
                 opacity: 1;
                 transition: opacity 100ms cubic-bezier(0.4, 0.0, 0.2, 1),
                 stroke-width 100ms cubic-bezier(0.4, 0.0, 0.2, 1);
@@ -167,4 +167,27 @@
 
 .tau-app-main-pane.new-feature-label:after {
     content: none;
+}
+
+.tau-board-header__control--relations {
+    margin-left: 10px;
+
+    .tau-violations-btn {
+        display: flex;
+        align-items: center;
+
+        &__active {
+            background: linear-gradient(to bottom,#fffbdf,#fdf4b4);
+            border-color: #d9d1a2;
+
+            &:hover {
+                background: linear-gradient(to bottom,#fffbdf,#f2e7a6);
+            }
+        }
+
+        .tau-icon-warning {
+            display: inline-block;
+            margin-right: 2px;
+        }
+    }
 }

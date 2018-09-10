@@ -1,16 +1,11 @@
 import * as $ from 'jquery';
 
-import ViewMode from 'src/const.view.modes';
 import { IRelation } from 'src/data';
-import { ICardsGroupedByEntityId } from 'src/relations.draw';
-
-let selectedCardIds: number[] = [];
+import { ICardsGroupedByEntityId } from 'src/rendering/renderer';
+import ViewMode from 'src/view_mode';
 
 const hideSelection = ($card: JQuery) => {
-    if ($card.hasClass('tau-selected')) {
-        $card.removeClass('tau-selected');
-        selectedCardIds = selectedCardIds.concat($card.data('id'));
-    }
+    $card.removeClass('tau-selected');
 };
 
 const highlightCard = (card: HTMLElement, viewMode: ViewMode) => {
@@ -30,8 +25,8 @@ const highlightCard = (card: HTMLElement, viewMode: ViewMode) => {
 };
 
 const cleanCards = ($grid: JQuery) => {
-    ['related', 'related-inbound', 'related-outbound', 'source'].forEach((v) => {
-        const className = `mashupCustomUnitShowRelations__${v}`;
+    ['related', 'source'].forEach((postfix) => {
+        const className = `mashupCustomUnitShowRelations__${postfix}`;
 
         $grid.find(`.${className}`).removeClass(className);
     });
@@ -46,7 +41,7 @@ export const cleanGridAndCards = ($grid: JQuery) => {
     }
 };
 
-export function buildCardsByRelationsHighlighter($grid: JQuery, cardsByEntityId: ICardsGroupedByEntityId, viewMode: ViewMode) {
+export function buildCardsHighlighter($grid: JQuery, cardsByEntityId: ICardsGroupedByEntityId, viewMode: ViewMode) {
     const getCardsByEntityId = (entityId: number) => cardsByEntityId[entityId] || [];
 
     const highlightCardsByRelation = (relation: IRelation) => {

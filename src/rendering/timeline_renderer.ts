@@ -1,9 +1,8 @@
 import * as $ from 'jquery';
-import viewModes from 'src/const.view.modes';
-import RelationsData from 'src/data';
-import RelationsDraw from 'src/relations.draw';
+import Application from 'src/application';
+import Renderer from 'src/rendering/renderer';
 import { intersectRects, IRect } from 'src/utils/intersection';
-import ValidationStrategy from 'src/validation/strategies/strategy';
+import viewModes from 'src/view_mode';
 import * as _ from 'underscore';
 
 interface ICardElementWithMetadata extends HTMLElement {
@@ -12,17 +11,17 @@ interface ICardElementWithMetadata extends HTMLElement {
     coords: string;
 }
 
-export default class RelationsDrawTimeline extends RelationsDraw<ICardElementWithMetadata> {
-    constructor(dataFetcher: RelationsData, validationStrategy: ValidationStrategy) {
-        super(dataFetcher, validationStrategy);
+export default class TimelineRenderer extends Renderer<ICardElementWithMetadata> {
+    constructor(application: Application) {
+        super(application);
         this.viewMode = viewModes.TIMELINE;
     }
 
-    public _appendSvgToGrid($svg: JQuery) {
+    protected _appendSvgToGrid($svg: JQuery) {
         this.$grid.find('.tau-timeline.i-role-timeline-column').append($svg);
     }
 
-    public _getCardsGroupedById() {
+    protected getCardsGroupedById() {
         const groupedCards = _.groupBy<ICardElementWithMetadata>(
             [
                 ...this.$grid.find('.tau-backlog-body .i-role-card, .tau-backlog-body .tau-sortable__placeholder')
@@ -61,11 +60,11 @@ export default class RelationsDrawTimeline extends RelationsDraw<ICardElementWit
         }, {});
     }
 
-    public _getTable() {
+    protected getTable() {
         return this.$grid.find('.tau-timeline-flow');
     }
 
-    public _getPositionFromRect(cardRect: ClientRect | DOMRect, tableRect: ClientRect | DOMRect) {
+    protected getPositionFromRect(cardRect: ClientRect | DOMRect, tableRect: ClientRect | DOMRect) {
         return {
             x: cardRect.left - tableRect.left,
             y: cardRect.top - tableRect.top - this.offset,
@@ -74,7 +73,7 @@ export default class RelationsDrawTimeline extends RelationsDraw<ICardElementWit
         };
     }
 
-    public _getIntersectionPoints(cardPos: IRect, targetPos: IRect) {
+    protected getIntersectionPoints(cardPos: IRect, targetPos: IRect) {
         const points = intersectRects(cardPos, targetPos);
 
         if (Math.abs(points.start.x - points.end.x) < 10) {
@@ -84,11 +83,11 @@ export default class RelationsDrawTimeline extends RelationsDraw<ICardElementWit
         return points;
     }
 
-    public _getElementSelectFunction = (id: number, el: ICardElementWithMetadata) =>
+    protected getElementSelectFunction = (id: number, el: ICardElementWithMetadata) =>
         () => _.first((this.cardsById[id] || [])
             .filter((c) => c.sectionType === el.sectionType && el.coords && _.isEqual(c.coords || '', el.coords || '')))!
 
-    public _getClientRects(fromEl: ICardElementWithMetadata, toEl: ICardElementWithMetadata) {
+    protected getClientRects(fromEl: ICardElementWithMetadata, toEl: ICardElementWithMetadata) {
         const rects = {
             cardRect: (fromEl.holder || fromEl).getBoundingClientRect(),
             targetRect: (toEl.holder || toEl).getBoundingClientRect(),
@@ -110,7 +109,7 @@ export default class RelationsDrawTimeline extends RelationsDraw<ICardElementWit
         return rects;
     }
 
-    public _processTargetCards(cards: ICardElementWithMetadata[]) {
+    protected processTargetCards(cards: ICardElementWithMetadata[]) {
         return cards.map((card) => {
             const $parent = $(card).parent();
             const parentCard = $parent.hasClass('i-role-timeline-planner-card-holder') ? $parent[0] : card;

@@ -1,15 +1,14 @@
 import * as $ from 'jquery';
-import * as subscriptions from 'src/bus.subscriptions';
-import ViewMode from 'src/const.view.modes';
-import RelationsDraw from 'src/relations.draw';
-import RelationsDrawList from 'src/relations.draw.list';
-import RelationsDrawModel from 'src/relations.draw.model';
-import RelationsDrawTimeline from 'src/relations.draw.timeline';
+import Application from 'src/application';
+import ListRenderer from 'src/rendering/list_renderer';
+import Renderer from 'src/rendering/renderer';
+import TimelineRenderer from 'src/rendering/timeline_renderer';
 import ValidationStrategy from 'src/validation/strategies/strategy';
 import * as validationStrategyBuilder from 'src/validation/strategy_builder';
+import ViewMode from 'src/view_mode';
 import { onBoardCreate, onDetailsCreate, onListCreate, onTimelineCreate } from 'tau/api/board/v1';
 
-import 'src/index.css';
+import 'src/index.scss';
 
 export interface IBoard {
     boardSettings: IBoardSettings;
@@ -34,25 +33,25 @@ export interface IBoardSettings {
     };
 }
 
-let currentModel: RelationsDrawModel | null = null;
+let application: Application | null = null;
 
-const createModel = (RelationsDrawConstructor: typeof RelationsDraw, validationStrategy: ValidationStrategy<any>, boardSettings: IBoardSettings) => {
-    if (!currentModel) {
-        currentModel = new RelationsDrawModel(RelationsDrawConstructor, validationStrategy, boardSettings);
+const createModel = (RendererModel: typeof Renderer, validationStrategy: ValidationStrategy<any>, boardSettings: IBoardSettings) => {
+    if (!application) {
+        application = new Application(RendererModel, validationStrategy, boardSettings);
     } else {
-        currentModel.setConfig(RelationsDrawConstructor, validationStrategy, boardSettings);
+        application.setConfig(RendererModel, validationStrategy, boardSettings);
     }
 
-    return currentModel;
+    return application;
 };
 
 const initialize = () => {
     onDetailsCreate((details) => {
-        createModel(RelationsDraw, validationStrategyBuilder.buildStrategyDetailsBoard(), details.boardSettings);
+        createModel(Renderer, validationStrategyBuilder.buildStrategyDetailsBoard(), details.boardSettings);
     });
 
     onBoardCreate((boardModel) => {
-        const model = createModel(RelationsDraw, validationStrategyBuilder.buildStrategyForBoard(boardModel.board), boardModel.board.boardSettings);
+        const model = createModel(Renderer, validationStrategyBuilder.buildStrategyForBoard(boardModel.board), boardModel.board.boardSettings);
 
         boardModel.onCellsUpdate(model.redraw);
         boardModel.onCardDragging(model.redraw);
@@ -66,7 +65,7 @@ const initialize = () => {
         const timelineEvents = timeline.events;
 
         timelineEvents.onRender.once(() => {
-            const model = createModel(RelationsDrawTimeline as any, validationStrategyBuilder.buildStrategyForTimeline(), timeline.boardSettings);
+            const model = createModel(TimelineRenderer as any, validationStrategyBuilder.buildStrategyForTimeline(), timeline.boardSettings);
 
             $('.tau-timeline-canvas').scroll((evt) => {
                 model.update({ y: evt.target.scrollTop });
@@ -102,7 +101,7 @@ const initialize = () => {
         const listEvents = list.events;
 
         listEvents.onTreeRendered.once(() => {
-            const model = createModel(RelationsDrawList as any, validationStrategyBuilder.buildStrategyForList(), list.boardSettings);
+            const model = createModel(ListRenderer as any, validationStrategyBuilder.buildStrategyForList(), list.boardSettings);
 
             listEvents.onTreeRendered.add(() => {
                 model.redraw();
@@ -121,7 +120,7 @@ const initialize = () => {
 };
 
 const initializeSubscriptions = () => {
-    subscriptions.onHideEmptyLines(() => currentModel && currentModel.redraw());
+    $(document).on('click', '.i-role-hide-empty-lanes', () => application && application.redraw());
 };
 
 initialize();

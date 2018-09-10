@@ -1,4 +1,4 @@
-import relationTypes from 'src/relationTypes';
+import relationTypes from 'src/relation_types';
 import { IPoint } from 'src/utils/intersection';
 
 export const getRelationTypeMarkerStartId = ({ name }: any, hasViolations: boolean) => `${name}${hasViolations ? '_violated' : ''}_start`;

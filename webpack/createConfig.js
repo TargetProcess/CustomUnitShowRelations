@@ -56,7 +56,7 @@ function createConfig(opts_) {
                 ]
             },
             {
-                test: /\.css$/,
+                test: /\.scss$/,
                 use: [
                     {loader: 'style-loader'},
                     {loader: 'css-loader'},
@@ -138,6 +138,7 @@ function createConfig(opts_) {
     config.externals = [
         'jQuery',
         'react',
+        'react-dom',
         'tau-intl',
         /^libs\//,
         {jquery: 'jQuery'},

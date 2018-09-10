@@ -1,25 +1,25 @@
-import ViewMode from 'src/const.view.modes';
-import RelationsData, { IRelation } from 'src/data';
-import RelationsDraw from 'src/relations.draw';
+import Application from 'src/application';
+import { IRelation } from 'src/data';
+import Renderer from 'src/rendering/renderer';
 import { intersectRects, IRect } from 'src/utils/intersection';
-import ValidationStrategy from 'src/validation/strategies/strategy';
+import ViewMode from 'src/view_mode';
 import * as _ from 'underscore';
 
-export default class RelationsDrawList extends RelationsDraw {
-    constructor(dataFetcher: RelationsData, validationStrategy: ValidationStrategy) {
-        super(dataFetcher, validationStrategy);
+export default class ListRenderer extends Renderer {
+    constructor(application: Application) {
+        super(application);
         this.viewMode = ViewMode.LIST;
     }
 
-    public _appendSvgToGrid($svg: JQuery) {
+    protected _appendSvgToGrid($svg: JQuery) {
         this.$grid.find('.i-role-unit-editor-popup-position-within').append($svg);
     }
 
-    public _getTable() {
+    protected getTable() {
         return this.$grid.find('.tau-list-level-0');
     }
 
-    public _getIntersectionPoints(cardPos: IRect, targetPos: IRect, gridRect: ClientRect | DOMRect, relation: IRelation) {
+    protected getIntersectionPoints(cardPos: IRect, targetPos: IRect, gridRect: ClientRect | DOMRect, relation: IRelation) {
         if (Math.abs(targetPos.y - cardPos.y) > 20) {
             const points = intersectRects(cardPos, targetPos);
 
@@ -46,7 +46,7 @@ export default class RelationsDrawList extends RelationsDraw {
         }
     }
 
-    public _processRelations(relations: IRelation[]) {
+    protected processRelations(relations: IRelation[]) {
         return relations.map((relation, index) => ({ ...relation, index }));
     }
 }

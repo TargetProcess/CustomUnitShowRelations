@@ -1,5 +1,5 @@
 import * as $ from 'jquery';
-import relationTypes from 'src/relationTypes';
+import relationTypes from 'src/relation_types';
 import svgTemplate from 'src/templates/svg.html';
 import * as relationUtils from 'src/utils/relation.lines';
 

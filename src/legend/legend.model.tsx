@@ -1,11 +1,9 @@
 import * as React from 'react';
-import ViewMode from 'src/const.view.modes';
-import RelationsData from 'src/data';
-import { IBoardSettings } from 'src/index';
+import Application from 'src/application';
 import ComponentLegendWrapper from 'src/legend/component.legend.wrapper';
-import RelationDraw from 'src/relations.draw';
-import tausTrack from 'src/relations.taus';
-import relationTypes, { IRelationType } from 'src/relationTypes';
+import relationTypes, { IRelationType } from 'src/relation_types';
+import tausTrack from 'src/utils/taus';
+import ViewMode from 'src/view_mode';
 import actionsIntegration from 'tau/api/actions/v1';
 import RestStorage from 'tau/storage/api.nocache';
 import * as _ from 'underscore';
@@ -22,84 +20,82 @@ export interface IRelationConfig extends IRelationType {
 actionsIntegration.addControl(<ComponentLegendWrapper onUpdateLegend={onUpdateLegend} />);
 
 export default class LegendModel {
-    public isShown = false;
-
-    private boardSettings: IBoardSettings;
+    private application: Application;
     private restStorage: RestStorage;
-    private relationsDrawer: RelationDraw;
-    private dataFetcher: RelationsData;
     private saveToStorage: () => void;
 
     private _userKey!: string;
     private relationConfigs!: IRelationConfig[];
 
-    constructor(relationsDrawer: RelationDraw, dataFetcher: RelationsData, boardSettings: IBoardSettings) {
-        this.boardSettings = boardSettings;
+    constructor(application: Application) {
+        this.application = application;
         this.restStorage = new RestStorage();
-        this.relationsDrawer = relationsDrawer;
-        this.dataFetcher = dataFetcher;
         this.saveToStorage = _.throttle(this._saveToStorage, 1000, { leading: false });
 
         this.initializeSubscriptions();
-        this.setInitialData(boardSettings);
+        this.setInitialData();
 
         this.loadSettings().then(() => this.refresh());
     }
 
-    public initializeSubscriptions() {
+    public cleanup() {
+        actionsIntegration.unbind();
+    }
+
+    private initializeSubscriptions() {
         actionsIntegration.onShow(() => {
             this.refresh();
         });
     }
 
-    public setInitialData(boardSettings: IBoardSettings) {
+    private setInitialData() {
         const currentUserId = window.loggedUser ? window.loggedUser.id : null;
-        this._userKey = `user${currentUserId}-${boardSettings.settings.id}`;
-        this.isShown = false;
+        this._userKey = `user${currentUserId}-${this.application.boardId}`;
+        this.application.setIsActive(false);
         this.relationConfigs = relationTypes.map((r) => ({ ...r, show: true }));
-        this.dataFetcher.setFilterConfig(this.relationConfigs);
+        this.application.dataFetcher.setFilterConfig(this.relationConfigs);
     }
 
-    public data() {
+    private data() {
         return {
-            isVisible: this.boardSettings.settings.viewMode !== ViewMode.DETAILS,
+            isVisible: this.application.viewMode !== ViewMode.DETAILS,
             onUpdateLegend,
-            isExpanded: this.isShown,
+            isExpanded: this.application.isActive,
             relationConfigs: this.relationConfigs,
             onExpansionStateChange: this.changeShowState,
             onRelationTypeSelect: this.changeRelationTypes
         };
     }
 
-    public changeRelationTypes = ({ name = '', show = false }) => {
+    private changeRelationTypes = ({ name = '', show = false }) => {
         tausTrack({
             name: `${show ? 'add' : 'remove'}-${name.toLowerCase()}`
         });
         this.relationConfigs.filter(({ name: relationName }) => relationName === name)[0].show = show;
-        this.dataFetcher.setFilterConfig(this.relationConfigs);
+        this.application.dataFetcher.setFilterConfig(this.relationConfigs);
         this.saveToStorage();
         this.refresh();
     }
 
-    public changeShowState = (isShown: boolean) => {
+    private changeShowState = (isShown: boolean) => {
         tausTrack({
             name: isShown ? 'show' : 'hide'
         });
-        this.isShown = isShown;
+        this.application.setIsActive(isShown);
         this.saveToStorage();
         this.refresh();
     }
 
-    public _saveToStorage() {
+    private _saveToStorage() {
         this.restStorage.data(REST_STORAGE_GROUP_NAME, this._userKey, {
             relations: JSON.stringify({
-                expanded: this.isShown,
+                expanded: this.application.isActive,
                 relations: this.relationConfigs.map((r) => ({ name: r.name, show: r.show }))
             })
         });
     }
 
-    public loadSettings() {
+    private loadSettings() {
         return this.restStorage
             .select(REST_STORAGE_GROUP_NAME, {
                 $where: { key: this._userKey },
@@ -111,7 +107,7 @@ export default class LegendModel {
                     const relationsConfig = JSON.parse(data.relations);
 
                     if (!_.isUndefined(relationsConfig.expanded)) {
-                        this.isShown = relationsConfig.expanded;
+                        this.application.setIsActive(relationsConfig.expanded);
                     }
 
                     if (relationsConfig.relations) {
@@ -124,24 +120,17 @@ export default class LegendModel {
                             return r;
                         });
                     }
-                    this.dataFetcher.setFilterConfig(this.relationConfigs);
+                    this.application.dataFetcher.setFilterConfig(this.relationConfigs);
                 }
             });
     }
 
-    public refresh() {
-        if (this.relationsDrawer) {
-            if (!this.isShown) {
-                this.relationsDrawer.removeAll();
-            } else {
-                this.relationsDrawer.redraw();
-            }
-            onUpdateLegend.fire(this.data());
+    private refresh() {
+        if (!this.application.isActive) {
+            this.application.renderer.removeAll();
+        } else {
+            this.application.renderer.redraw();
         }
-    }
-
-    public cleanup() {
-        actionsIntegration.unbind();
-        delete this.relationsDrawer;
+        onUpdateLegend.fire(this.data());
     }
 }
