@@ -25,7 +25,7 @@ export default class LegendRelations extends React.Component<ILegendRelationsPro
     }
 
     public renderRelation(relationConfig: IRelationConfig) {
-        const className = `tau-checkbox relations-legend__item-name tau-checkbox ${getRelationCssClass(relationConfig)}}`;
+        const className = `tau-checkbox relations-legend__item-name tau-checkbox ${getRelationCssClass(relationConfig)}`;
 
         return (
             <li key={relationConfig.name} className="relations-legend__item">

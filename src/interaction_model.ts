@@ -266,19 +266,19 @@ export default class InteractionModel {
     }
 
     private focusArrowLines($lines: JQuery<SVGPathElement>) {
-        $($lines).filter('.line').attr('class', 'line line__highlighted line__focused');
+        $($lines).filter('.line').each((_, element) => element.classList.add('line__highlighted', 'line__focused'));
     }
 
     private unfocusArrowLines($lines: JQuery<SVGPathElement>) {
-        $($lines).filter('.line').attr('class', 'line');
+        $($lines).filter('.line').each((_, element) => element.classList.remove('line__highlighted', 'line__focused'));
     }
 
     private selectArrowLines($lines: JQuery<SVGPathElement>) {
-        $($lines).filter('.line').attr('class', 'line line__highlighted');
+        $($lines).filter('.line').each((_, element) => element.classList.add('line__highlighted'));
     }
 
     private unselectArrowLines($lines: JQuery<SVGPathElement>) {
-        $($lines).filter('.line').attr('class', 'line');
+        $($lines).filter('.line').each((_, element) => element.classList.remove('line__highlighted'));
     }
 
     private getArrowId(mainEntityId: number, slave: number) {

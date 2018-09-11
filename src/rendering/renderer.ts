@@ -1,4 +1,5 @@
 import * as $ from 'jquery';
+import classnames from 'libs/classNames';
 import Application from 'src/application';
 import { buildCardsHighlighter, cleanGridAndCards } from 'src/card_highlighter';
 import { IRelation } from 'src/data';
@@ -24,7 +25,6 @@ interface ICreateLineOptions {
     cssClass: string;
     bezierCoords: string;
     stroke: string;
-    strokeWidth: string;
     fill?: string;
 }
 
@@ -222,7 +222,6 @@ export default class Renderer<T extends HTMLElement = HTMLElement> {
         line.setAttribute('d', options.bezierCoords);
         line.setAttribute('stroke', options.stroke || 'grey');
         line.setAttribute('fill', options.fill || 'none');
-        line.setAttribute('stroke-width', options.strokeWidth || '1');
         return line;
     }
 
@@ -253,17 +252,15 @@ export default class Renderer<T extends HTMLElement = HTMLElement> {
         const hasViolations = this.application.validationStrategy.isRelationViolated(mainElement, slaveElement);
         const color = relationUtils.getRelationColor(relationType, hasViolations);
         const helperLine = this.createLine({
-            cssClass: 'helperLine',
+            cssClass: classnames('helperLine', { helperLine__violated: hasViolations }),
             bezierCoords,
-            stroke: color,
-            strokeWidth: '6'
+            stroke: color
         });
 
         const line = this.createLine({
-            cssClass: 'line',
+            cssClass: classnames('line', { line__violated: hasViolations }),
             bezierCoords,
-            stroke: color,
-            strokeWidth: '1.2'
+            stroke: color
         });
 
         line.setAttribute('marker-start', `url(#${relationUtils.getRelationTypeMarkerStartId(relation.relationType, hasViolations)})`);
