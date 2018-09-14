@@ -1,14 +1,12 @@
 import * as $ from 'jquery';
 import Application from 'src/application';
-import ListRenderer from 'src/rendering/list_renderer';
-import Renderer from 'src/rendering/renderer';
-import TimelineRenderer from 'src/rendering/timeline_renderer';
 import ValidationStrategy from 'src/validation/strategies/strategy';
 import * as validationStrategyBuilder from 'src/validation/strategy_builder';
 import ViewMode from 'src/view_mode';
-import { onBoardCreate, onDetailsCreate, onListCreate, onTimelineCreate } from 'tau/api/board/v1';
+import { onBoardCreate, onListCreate, onTimelineCreate } from 'tau/api/board/v1';
+import * as _ from 'underscore';
 
-import 'src/index.scss';
+import 'styles/index.scss';
 
 export interface IBoard {
     boardSettings: IBoardSettings;
@@ -30,69 +28,84 @@ export interface IBoardSettings {
     settings: {
         id: number;
         viewMode: ViewMode;
+        hideEmptyLanes: boolean;
+        page?: { x: number, y: number }
     };
 }
 
-let application: Application | null = null;
+let initializedApplication: Application | null = null;
 
-const createModel = (RendererModel: typeof Renderer, validationStrategy: ValidationStrategy<any>, boardSettings: IBoardSettings) => {
-    if (!application) {
-        application = new Application(RendererModel, validationStrategy, boardSettings);
-    } else {
-        application.setConfig(RendererModel, validationStrategy, boardSettings);
+async function updateApplicationConfig(validationStrategy: ValidationStrategy<any>, boardSettings: IBoardSettings) {
+    if (!initializedApplication) {
+        initializedApplication = new Application();
     }
 
-    return application;
-};
+    await validationStrategy.initialize();
+    await initializedApplication.reinitialize(validationStrategy, boardSettings);
+    return initializedApplication;
+}
 
 const initialize = () => {
-    onDetailsCreate((details) => {
-        createModel(Renderer, validationStrategyBuilder.buildStrategyDetailsBoard(), details.boardSettings);
-    });
+    onBoardCreate(async (boardModel) => {
+        const application = await updateApplicationConfig(validationStrategyBuilder.buildStrategyForBoard(boardModel.board), boardModel.board.boardSettings);
 
-    onBoardCreate((boardModel) => {
-        const model = createModel(Renderer, validationStrategyBuilder.buildStrategyForBoard(boardModel.board), boardModel.board.boardSettings);
-
-        boardModel.onCellsUpdate(model.redraw);
-        boardModel.onCardDragging(model.redraw);
-        boardModel.onColumnResize(model.redraw);
-        boardModel.onPagingAnimated(model.redraw);
-        boardModel.onZoomLevelChanged(model.redraw);
-        boardModel.onExpandCollapseAxis(model.redraw);
+        boardModel.onCellsUpdate(() => {
+            application.updateCards();
+        });
+        boardModel.onCardDragging(() => {
+            application.updateCards();
+            application.updateArrowPositions();
+        });
+        boardModel.onColumnResize(() => {
+            application.updateCards();
+            application.updateArrowPositions();
+        });
+        boardModel.onZoomLevelChanged(() => {
+            application.updateCards();
+        });
+        boardModel.onExpandCollapseAxis(() => {
+            application.updateCards();
+            application.updateArrowPositions();
+        });
     });
 
     onTimelineCreate((timeline) => {
         const timelineEvents = timeline.events;
 
-        timelineEvents.onRender.once(() => {
-            const model = createModel(TimelineRenderer as any, validationStrategyBuilder.buildStrategyForTimeline(), timeline.boardSettings);
+        timelineEvents.onRender.once(async () => {
+            const application = await updateApplicationConfig(validationStrategyBuilder.buildStrategyForTimeline(), timeline.boardSettings);
+
+            const throttledUpdateCardsAndArrowPosition = _.throttle(() => {
+                application.updateCards();
+                application.updateArrowPositions();
+            }, 30);
+
+            const throttledUpdateTimelineOffset = _.throttle((newTimelineOffset: number) => {
+                application.updateTimelineOffset(newTimelineOffset);
+            }, 30);
 
             $('.tau-timeline-canvas').scroll((evt) => {
-                model.update({ y: evt.target.scrollTop });
+                throttledUpdateTimelineOffset(evt.target.scrollTop);
             });
+
             $(window).resize(() => {
-                model.update();
+                application.updateArrowPositions();
             });
 
             timelineEvents.onCellUpdated.add(() => {
-                model.redraw();
+                throttledUpdateCardsAndArrowPosition();
             });
 
             timelineEvents.onMoveCardToCell.add(() => {
-                model.redraw();
+                throttledUpdateCardsAndArrowPosition();
             });
 
             timelineEvents.onRender.add(() => {
-                model.redraw();
+                application.updateCards();
             });
-            timelineEvents.onLocalDateRangeChanged.add(() => {
-                model.redraw();
-            });
-            timelineEvents.onViewTimelineTracksCountChanged.add(() => {
-                model.redraw();
-            });
-            timelineEvents.onPlannedDatesUpdating.add(($card: JQuery) => {
-                model.updateRelationsForCard($card.data('id'));
+
+            timelineEvents.onPlannedDatesUpdating.add(() => {
+                application.updateArrowPositions();
             });
         });
     });
@@ -100,28 +113,24 @@ const initialize = () => {
     onListCreate((list) => {
         const listEvents = list.events;
 
-        listEvents.onTreeRendered.once(() => {
-            const model = createModel(ListRenderer as any, validationStrategyBuilder.buildStrategyForList(), list.boardSettings);
+        listEvents.onTreeRendered.once(async () => {
+            const application = await updateApplicationConfig(validationStrategyBuilder.buildStrategyForList(), list.boardSettings);
 
             listEvents.onTreeRendered.add(() => {
-                model.redraw();
+                application.updateCards();
             });
             listEvents.onTreeChanged.add(() => {
-                model.redraw();
+                application.updateCards();
             });
-            listEvents.onCardDragging.add(($card: JQuery) => {
-                model.updateRelationsForCard($card.data('id'));
+            listEvents.onCardDragging.add(() => {
+                application.updateCards();
+                application.updateArrowPositions();
             });
             listEvents.onExpansionStateChanged.add(() => {
-                model.redraw();
+                application.updateCards();
             });
         });
     });
 };
 
-const initializeSubscriptions = () => {
-    $(document).on('click', '.i-role-hide-empty-lanes', () => application && application.redraw());
-};
-
 initialize();
-initializeSubscriptions();

@@ -1,8 +1,8 @@
 enum ViewMode {
-    LIST = 'newlist',
-    BOARD = 'board',
-    DETAILS = 'list',
-    TIMELINE = 'timeline'
+    List = 'newlist',
+    Board = 'board',
+    Details = 'list',
+    Timeline = 'timeline'
 }
 
 export default ViewMode;

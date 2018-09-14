@@ -3,17 +3,28 @@
       "module": "es2015",
       "moduleResolution": "node",
       "baseUrl": ".",
-      "target": "es2016",
+      "target": "es5",
       "sourceMap": true,
-      "jsx": "preserve",
+      "jsx": "react",
+      "importHelpers": true,
+      "downlevelIteration": true,
+      "lib": [
+        "dom",
+        "es2015",
+        "es2016"
+      ],
 
       "strict": true,
+      "alwaysStrict": true,
       "noUnusedLocals": true,
       "noUnusedParameters": true,
+      "noFallthroughCasesInSwitch": true,
+      "noImplicitReturns": true,
       "allowUnreachableCode": false
     },
     "include": [
       "src/**/*",
+      "assets/**/*",
       "typings/**/*",
       "test/**/*"
     ]

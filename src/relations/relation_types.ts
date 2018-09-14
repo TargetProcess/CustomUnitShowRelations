@@ -1,35 +1,43 @@
 import * as intl from 'tau-intl';
 
-export interface IRelationType {
+export interface IRelationConfig {
     label: string;
-    name: string;
+    type: RelationType;
     style: { color: string, violatedColor: string };
 }
 
-export default [
+export enum RelationType {
+    Dependency = 'Dependency',
+    Blocker = 'Blocker',
+    Relation = 'Relation',
+    Link = 'Link',
+    Duplicate = 'Duplicate'
+}
+
+export const relationsConfigs = [
     {
         label: intl.formatMessage('Dependencies'),
-        name: 'Dependency',
+        type: RelationType.Dependency,
         style: { color: '#6abcd0', violatedColor: '#f00' }
     },
     {
         label: intl.formatMessage('Blockers'),
-        name: 'Blocker',
+        type: RelationType.Blocker,
         style: { color: '#c30010', violatedColor: '#f00' }
     },
     {
         label: intl.formatMessage('Relations'),
-        name: 'Relation',
+        type: RelationType.Relation,
         style: { color: '#8e98a9', violatedColor: '#f00' }
     },
     {
         label: intl.formatMessage('Links'),
-        name: 'Link',
+        type: RelationType.Link,
         style: { color: '#4d7fbe', violatedColor: '#f00' }
     },
     {
         label: intl.formatMessage('Duplicates'),
-        name: 'Duplicate',
+        type: RelationType.Duplicate,
         style: { color: '#e79010', violatedColor: '#f00' }
     }
-] as IRelationType[];
+] as IRelationConfig[];

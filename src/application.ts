@@ -1,74 +1,175 @@
-import RelationsData from 'src/data';
+import * as _isEqual from 'lodash.isequal';
+import { Arrow, Arrows } from 'src/arrows';
+import { Card, CardHighlighter, Cards } from 'src/cards';
 import { IBoardSettings } from 'src/index';
-import InteractionModel from 'src/interaction_model';
+import { Hover, Selection } from 'src/interactions';
 import LegendModel from 'src/legend/legend.model';
-import Renderer from 'src/rendering/renderer';
+import { IRelation, RelationsFetcher, RelationType } from 'src/relations';
+import { getBackendByViewMode, Renderer } from 'src/rendering';
+import { Settings } from 'src/settings';
 import ValidationStrategy from 'src/validation/strategies/strategy';
 import ViewMode from 'src/view_mode';
-import ViolationFocusModel from 'src/violations_focus/violations_focus_model';
+import { ViolationFocus } from 'src/violations_focus';
 import * as _ from 'underscore';
 
+export interface IApplicationState {
+    isOnAppropriatePage: boolean;
+    boardId: number;
+    viewMode: ViewMode;
+    hideEmptyLanes: boolean;
+    currentPage: number;
+    isUiActive: boolean;
+    isFocusActive: boolean;
+    cards: Card[];
+    relations: IRelation[];
+    arrows: Arrow[];
+    hoveredArrow: Arrow | null;
+    selectedArrows: Arrow[];
+    visibleRelationTypes: Set<RelationType>;
+    timelineDrawOffset: number;
+}
+
+export type Reducer = (changes: Readonly<Partial<IApplicationState>>) => Promise<Partial<IApplicationState>>;
+
+const EMPTY_STATE: IApplicationState = {
+    isOnAppropriatePage: false,
+    boardId: -1,
+    viewMode: ViewMode.Board,
+    hideEmptyLanes: false,
+    currentPage: -1,
+    isUiActive: false,
+    isFocusActive: false,
+    cards: [],
+    relations: [],
+    arrows: [],
+    selectedArrows: [],
+    hoveredArrow: null,
+    visibleRelationTypes: new Set([RelationType.Blocker, RelationType.Dependency, RelationType.Duplicate, RelationType.Link, RelationType.Relation]),
+    timelineDrawOffset: 0
+};
+
 export default class Application {
-    public update = _.throttle((offset?: { y: number }) => {
-        this.executeDrawOperation(this.renderer.update.bind(this.renderer, offset));
-    }, 30);
+    // @ts-ignore: No unused
+    private relationsFetcher: RelationsFetcher;
+    // @ts-ignore: No unused
+    private legend: LegendModel;
+    // @ts-ignore: No unused
+    private violationFocus: ViolationFocus;
+    // @ts-ignore: No unused
+    private settings: Settings;
+    // @ts-ignore: No unused
+    private arrows: Arrows;
+    private cards: Cards;
+    private renderer: Renderer;
+    // @ts-ignore: No unused
+    private cardHighlighter: CardHighlighter;
+    // @ts-ignore: No unused
+    private hover: Hover;
+    // @ts-ignore: No unused
+    private selection: Selection;
+    private validationStrategy!: ValidationStrategy;
 
-    public redraw = _.throttle(() => {
-        this.executeDrawOperation(this.renderer.redraw);
-    }, 100);
+    private state: Readonly<IApplicationState> = EMPTY_STATE;
+    private reducers: Reducer[] = [];
 
-    public updateRelationsForCard = _.throttle(
-        (id: string) => this.executeDrawOperation(this.renderer.updateRelationsForCard.bind(this.renderer, id)),
-        20,
-        { leading: false }
-    );
-
-    public isActive = false;
-    public viewMode!: ViewMode;
-    public boardId!: number;
-    public dataFetcher: RelationsData;
-    public legendModel!: LegendModel;
-    public renderer!: Renderer;
-    public validationStrategy!: ValidationStrategy;
-    public violationFocusModel: ViolationFocusModel;
-    public interactionModel: InteractionModel;
-
-    constructor(RendererModel: typeof Renderer, validationStrategy: ValidationStrategy, boardSettings: IBoardSettings) {
-        this.dataFetcher = new RelationsData();
-        this.dataFetcher.updated.add(() => this.dataFetcher.refresh().then(() => this.redraw()));
-
-        this.violationFocusModel = new ViolationFocusModel(this);
-        this.interactionModel = new InteractionModel(this);
-
-        this.setConfig(RendererModel, validationStrategy, boardSettings);
+    constructor() {
+        this.relationsFetcher = new RelationsFetcher(this);
+        this.violationFocus = new ViolationFocus(this);
+        this.legend = new LegendModel(this);
+        this.settings = new Settings(this);
+        this.arrows = new Arrows(this);
+        this.cards = new Cards(this);
+        this.renderer = new Renderer(this);
+        this.cardHighlighter = new CardHighlighter(this);
+        this.hover = new Hover(this);
+        this.selection = new Selection(this);
     }
 
-    public executeDrawOperation = (operation: () => void) => {
-        if (this.isActive) {
-            operation();
+    public getState() {
+        return this.state;
+    }
+
+    public async setState(stateChanges: Partial<IApplicationState>) {
+        const changedPropertyNames = (Object.keys(stateChanges) as Array<keyof IApplicationState>).filter((key) => !_isEqual(stateChanges[key], this.state[key]));
+        if (changedPropertyNames.length === 0) {
+            return;
+        }
+
+        const filteredStateChanges = _.pick(stateChanges, changedPropertyNames) as Partial<IApplicationState>;
+        this.state = { ...this.getState(), ...filteredStateChanges };
+
+        const additionalStateChanges: Partial<IApplicationState> = await this.reducers.reduce(async (accPromise, reducer) => {
+            return { ...await accPromise, ...await reducer(filteredStateChanges) };
+        }, Promise.resolve({}));
+        await this.setState(additionalStateChanges);
+    }
+
+    public registerReducer(reducer: Reducer) {
+        this.reducers.push(reducer);
+    }
+
+    public updateCards() {
+        if (!this.isStillOnAppropriatePage()) {
+            this.disable();
+            return;
+        }
+
+        this.cards.updateCards();
+    }
+
+    public updateArrowPositions() {
+        if (!this.isStillOnAppropriatePage()) {
+            this.disable();
+            return;
+        }
+
+        this.renderer.updateLinesForAllArrows();
+    }
+
+    public updateTimelineOffset(newTimelineDrawOffset: number) {
+        if (!this.isStillOnAppropriatePage()) {
+            this.disable();
+            return;
+        }
+
+        if (this.getState().timelineDrawOffset !== newTimelineDrawOffset) {
+            this.setState({ timelineDrawOffset: newTimelineDrawOffset });
         }
     }
 
-    public setConfig(RendererModel: typeof Renderer, validationStrategy: ValidationStrategy, boardSettings: IBoardSettings) {
-        if (this.renderer) {
-            this.renderer.removeAll();
-        }
-        if (this.legendModel) {
-            this.legendModel.cleanup();
-        }
-        this.violationFocusModel.cleanup();
-
-        this.viewMode = boardSettings.settings.viewMode;
-        this.boardId = boardSettings.settings.id;
+    public async reinitialize(validationStrategy: ValidationStrategy, boardSettings: IBoardSettings) {
         this.validationStrategy = validationStrategy;
-        this.violationFocusModel.updateUi();
-        this.dataFetcher.subscribeForRelationsUpdate();
-        this.renderer = new RendererModel(this);
-        this.legendModel = new LegendModel(this);
+        const { settings } = boardSettings;
+        await this.setState({
+            ...EMPTY_STATE,
+            isOnAppropriatePage: true,
+            boardId: settings.id,
+            viewMode: settings.viewMode,
+            hideEmptyLanes: !!settings.hideEmptyLanes,
+            currentPage: settings.page ? settings.page.x : 0
+        });
     }
 
-    public setIsActive(newValue: boolean) {
-        this.isActive = newValue;
-        this.violationFocusModel.updateUi();
+    public async disable() {
+        if (!this.getState().isOnAppropriatePage) {
+            return;
+        }
+
+        await this.setState({
+            ...EMPTY_STATE,
+            isOnAppropriatePage: false
+        });
+    }
+
+    public getRenderingBackend() {
+        return getBackendByViewMode(this.getState().viewMode, this);
+    }
+
+    public getValidationStrategy() {
+        return this.validationStrategy;
+    }
+
+    private isStillOnAppropriatePage() {
+        return this.getRenderingBackend().isApplicableToCurrentUi();
     }
 }

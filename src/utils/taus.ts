@@ -2,12 +2,12 @@ import { extend } from 'underscore';
 
 export interface ITausTrackData {
     name: string;
-    mainEntityId?: number;
+    masterEntityId?: number;
     slaveEntityId?: number;
     relationType?: string;
 }
 
-export default ({ name, mainEntityId, slaveEntityId, relationType }: ITausTrackData) => {
+export default ({ name, masterEntityId, slaveEntityId, relationType }: ITausTrackData) => {
     if (!window.taus) {
         return;
     }
@@ -17,7 +17,7 @@ export default ({ name, mainEntityId, slaveEntityId, relationType }: ITausTrackD
         tags: ['relations']
     };
 
-    mainEntityId && extend(trackData, { mainEntityId });
+    masterEntityId && extend(trackData, { masterEntityId });
     slaveEntityId && extend(trackData, { slaveEntityId });
     relationType && extend(trackData, { relationType });
     window.taus.track(trackData);

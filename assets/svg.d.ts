@@ -1,4 +1,4 @@
-declare module 'src/templates/svg.html' {
+declare module 'assets/svg.html' {
     const svg: any;
     export default svg;
 }

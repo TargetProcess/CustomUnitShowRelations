@@ -18,7 +18,7 @@ const processReadmeText = (text, publishName) => {
 };
 
 const processReadme = (publishName) => {
-    const targetFilePath = 'docs/README.md';
+    const targetFilePath = 'README.md';
     const [file] = ls(targetFilePath);
 
     if (!file) {

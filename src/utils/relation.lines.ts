@@ -1,11 +1,11 @@
-import relationTypes from 'src/relation_types';
+import { relationsConfigs, RelationType } from 'src/relations';
 import { IPoint } from 'src/utils/intersection';
 
-export const getRelationTypeMarkerStartId = ({ name }: any, hasViolations: boolean) => `${name}${hasViolations ? '_violated' : ''}_start`;
-export const getRelationTypeMarkerEndId = ({ name }: any, hasViolations: boolean) => `${name}${hasViolations ? '_violated' : ''}_outbound_end`;
+export const getRelationTypeMarkerStartId = (relationType: RelationType, hasViolations: boolean) => `${relationType}${hasViolations ? '_violated' : ''}_start`;
+export const getRelationTypeMarkerEndId = (relationType: RelationType, hasViolations: boolean) => `${relationType}${hasViolations ? '_violated' : ''}_outbound_end`;
 export const getRelationTypeColor = ({ style }: any, hasViolations: boolean) => hasViolations ? style.violatedColor : style.color;
-export const getRelationColor = (relationType: string, hasViolations: boolean) =>
-    getRelationTypeColor(relationTypes.find(({ name }) => name === relationType), hasViolations);
+export const getRelationColor = (relationType: RelationType, hasViolations: boolean) =>
+    getRelationTypeColor(relationsConfigs.find(({ type }) => type === relationType), hasViolations);
 export const generateBezierCoords = (start: IPoint, end: IPoint) => {
     const points = [`M${start.x},${start.y}`];
 

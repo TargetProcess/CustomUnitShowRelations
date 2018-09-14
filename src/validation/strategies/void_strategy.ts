@@ -5,7 +5,7 @@ export default class VoidStrategy extends ValidationStrategy<void> {
         super(undefined);
     }
 
-    public isRelationViolated(_mainElement: HTMLElement, _slaveElement: HTMLElement) {
+    public isRelationViolated(_masterElement: HTMLElement, _slaveElement: HTMLElement) {
         return false;
     }
 }

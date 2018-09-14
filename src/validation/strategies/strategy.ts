@@ -5,7 +5,7 @@ export default abstract class ValidationStrategy<T = void> {
         this.viewModel = viewModel;
     }
 
-    public abstract isRelationViolated(_mainElement: HTMLElement, _slaveElement: HTMLElement): boolean;
+    public abstract isRelationViolated(_masterElement: HTMLElement, _slaveElement: HTMLElement): boolean;
     public initialize() {
         return Promise.resolve();
     }

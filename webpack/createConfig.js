@@ -51,9 +51,9 @@ function createConfig(opts_) {
                 test: /\.tsx?$/,
                 exclude: /node_modules/,
                 use: [
-                    {loader: 'babel-loader'},
+                    opts.production && {loader: 'babel-loader'},
                     {loader: 'ts-loader'}
-                ]
+                ].filter((loaderConfig) => !!loaderConfig)
             },
             {
                 test: /\.scss$/,

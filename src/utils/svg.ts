@@ -1,10 +1,10 @@
+import svgTemplate from 'assets/svg.html';
 import * as $ from 'jquery';
-import relationTypes from 'src/relation_types';
-import svgTemplate from 'src/templates/svg.html';
+import { relationsConfigs } from 'src/relations';
 import * as relationUtils from 'src/utils/relation.lines';
 
 export const createSvgFromTemplate = (width: number, height: number) => $(svgTemplate({
-    relationTypes,
+    relationsConfigs,
     width,
     height,
     getRelationTypeColor: relationUtils.getRelationTypeColor,

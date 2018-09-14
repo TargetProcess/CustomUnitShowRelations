@@ -1,5 +1,6 @@
 import { IBoard } from 'src/index';
 import ValidationStrategy from 'src/validation/strategies/strategy';
+import * as dateUtils from 'tau/utils/utils.date';
 
 interface ICoords {
     x: string;
@@ -16,23 +17,26 @@ export default class GroupedTeamIterations extends ValidationStrategy<IBoard> {
         this.axisWithGroupedTeamIterations = axisWithGroupedTeamIterations;
     }
 
-    public isRelationViolated(mainElement: HTMLElement, slaveElement: HTMLElement) {
-        const mainElementCoords: ICoords = JSON.parse(mainElement.dataset.dataItem!).coords;
+    public isRelationViolated(masterElement: HTMLElement, slaveElement: HTMLElement) {
+        const masterElementCoords: ICoords = JSON.parse(masterElement.dataset.dataItem!).coords;
         const slaveElementCoords: ICoords = JSON.parse(slaveElement.dataset.dataItem!).coords;
-        if (!mainElementCoords || !slaveElementCoords) {
+        if (!masterElementCoords || !slaveElementCoords) {
             return false;
         }
 
+        if (!DATE_REGEX.test(masterElementCoords[this.axisWithGroupedTeamIterations])) {
+            return false;
+        }
         if (!DATE_REGEX.test(slaveElementCoords[this.axisWithGroupedTeamIterations])) {
             return true;
         }
 
-        const mainElementStartDate = Date.parse(mainElementCoords[this.axisWithGroupedTeamIterations]);
-        const slaveElementStartDate = Date.parse(slaveElementCoords[this.axisWithGroupedTeamIterations]);
-        if (Number.isNaN(mainElementStartDate) || Number.isNaN(slaveElementStartDate)) {
+        const masterElementStartDate = dateUtils.parse(masterElementCoords[this.axisWithGroupedTeamIterations]);
+        const slaveElementStartDate = dateUtils.parse(slaveElementCoords[this.axisWithGroupedTeamIterations]);
+        if (!masterElementStartDate || !slaveElementStartDate) {
             return false;
         }
 
-        return mainElementStartDate > slaveElementStartDate;
+        return masterElementStartDate > slaveElementStartDate;
     }
 }

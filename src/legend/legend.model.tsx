@@ -1,136 +1,66 @@
 import * as React from 'react';
-import Application from 'src/application';
+import Application, { IApplicationState } from 'src/application';
 import ComponentLegendWrapper from 'src/legend/component.legend.wrapper';
-import relationTypes, { IRelationType } from 'src/relation_types';
+import { RelationType } from 'src/relations';
 import tausTrack from 'src/utils/taus';
 import ViewMode from 'src/view_mode';
 import actionsIntegration from 'tau/api/actions/v1';
-import RestStorage from 'tau/storage/api.nocache';
 import * as _ from 'underscore';
 
-const REST_STORAGE_GROUP_NAME = 'showRelations';
-const FIELD_NAME = 'userData';
-
-const onUpdateLegend = (_ as any).Callbacks();
-
-export interface IRelationConfig extends IRelationType {
-    show: boolean;
-}
-
-actionsIntegration.addControl(<ComponentLegendWrapper onUpdateLegend={onUpdateLegend} />);
+const onPropsUpdated = (_ as any).Callbacks();
+actionsIntegration.addControl(<ComponentLegendWrapper onPropsUpdated={onPropsUpdated} />);
 
 export default class LegendModel {
     private application: Application;
-    private restStorage: RestStorage;
-    private saveToStorage: () => void;
-
-    private _userKey!: string;
-    private relationConfigs!: IRelationConfig[];
 
     constructor(application: Application) {
         this.application = application;
-        this.restStorage = new RestStorage();
-        this.saveToStorage = _.throttle(this._saveToStorage, 1000, { leading: false });
+        actionsIntegration.onShow(() => this.updateUi());
 
-        this.initializeSubscriptions();
-        this.setInitialData();
-
-        this.loadSettings().then(() => this.refresh());
+        this.application.registerReducer(this.updateComponentOnUiChangesReducer.bind(this));
     }
 
-    public cleanup() {
-        actionsIntegration.unbind();
+    public updateUi() {
+        onPropsUpdated.fire(this.getPropsForComponent());
     }
 
-    private initializeSubscriptions() {
-        actionsIntegration.onShow(() => {
-            this.refresh();
-        });
-    }
-
-    private setInitialData() {
-        const currentUserId = window.loggedUser ? window.loggedUser.id : null;
-        this._userKey = `user${currentUserId}-${this.application.boardId}`;
-        this.application.setIsActive(false);
-        this.relationConfigs = relationTypes.map((r) => ({ ...r, show: true }));
-        this.application.dataFetcher.setFilterConfig(this.relationConfigs);
-    }
-
-    private data() {
+    private getPropsForComponent() {
+        const { isUiActive, visibleRelationTypes } = this.application.getState();
         return {
-            isVisible: this.application.viewMode !== ViewMode.DETAILS,
-            onUpdateLegend,
-            isExpanded: this.application.isActive,
-            relationConfigs: this.relationConfigs,
-            onExpansionStateChange: this.changeShowState,
-            onRelationTypeSelect: this.changeRelationTypes
+            onPropsUpdated,
+            isExpanded: isUiActive,
+            isVisible: this.application.getState().viewMode !== ViewMode.Details,
+            visibleRelationTypes,
+            onExpansionStateChange: this.changeUiState,
+            toggleRelationTypeVisibility: this.toggleRelationTypeVisibility
         };
     }
 
-    private changeRelationTypes = ({ name = '', show = false }) => {
+    private toggleRelationTypeVisibility = (relationType: RelationType) => {
+        const visibleRelationTypes = this.application.getState().visibleRelationTypes;
+        const isCurrentlyActive = visibleRelationTypes.has(relationType);
         tausTrack({
-            name: `${show ? 'add' : 'remove'}-${name.toLowerCase()}`
+            name: `${isCurrentlyActive ? 'remove' : 'add'}-${relationType.toLowerCase()}`
         });
-        this.relationConfigs.filter(({ name: relationName }) => relationName === name)[0].show = show;
-        this.application.dataFetcher.setFilterConfig(this.relationConfigs);
-        this.saveToStorage();
-        this.refresh();
+
+        const newVisibleRelationTypes = new Set(visibleRelationTypes);
+        isCurrentlyActive ? newVisibleRelationTypes.delete(relationType) : newVisibleRelationTypes.add(relationType);
+        this.application.setState({ visibleRelationTypes: newVisibleRelationTypes });
     }
 
-    private changeShowState = (isShown: boolean) => {
+    private changeUiState = (isActive: boolean) => {
         tausTrack({
-            name: isShown ? 'show' : 'hide'
+            name: isActive ? 'show' : 'hide'
         });
-        this.application.setIsActive(isShown);
-        this.saveToStorage();
-        this.refresh();
+        this.application.setState({ isUiActive: isActive });
     }
 
-    private _saveToStorage() {
-        this.restStorage.data(REST_STORAGE_GROUP_NAME, this._userKey, {
-            relations: JSON.stringify({
-                expanded: this.application.isActive,
-                relations: this.relationConfigs.map((r) => ({ name: r.name, show: r.show }))
-            })
-        });
-    }
-
-    private loadSettings() {
-        return this.restStorage
-            .select(REST_STORAGE_GROUP_NAME, {
-                $where: { key: this._userKey },
-                $fields: [FIELD_NAME]
-            }).then((response) => {
-                const data = response.data && response.data[0] && response.data[0].userData;
-
-                if (data) {
-                    const relationsConfig = JSON.parse(data.relations);
-
-                    if (!_.isUndefined(relationsConfig.expanded)) {
-                        this.application.setIsActive(relationsConfig.expanded);
-                    }
-
-                    if (relationsConfig.relations) {
-                        this.relationConfigs = this.relationConfigs.map((r) => {
-                            const [matchedRelationConfig] = relationsConfig.relations.filter((c: any) => c.name === r.name);
-
-                            if (matchedRelationConfig) {
-                                r.show = matchedRelationConfig.show;
-                            }
-                            return r;
-                        });
-                    }
-                    this.application.dataFetcher.setFilterConfig(this.relationConfigs);
-                }
-            });
-    }
-
-    private refresh() {
-        if (!this.application.isActive) {
-            this.application.renderer.removeAll();
-        } else {
-            this.application.renderer.redraw();
+    private async updateComponentOnUiChangesReducer(changes: Readonly<Partial<IApplicationState>>) {
+        if (_.isUndefined(changes.isUiActive) && !changes.visibleRelationTypes) {
+            return {};
         }
-        onUpdateLegend.fire(this.data());
+
+        this.updateUi();
+        return {};
     }
 }

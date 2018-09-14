@@ -37,6 +37,10 @@ export default class EntityWithStartDate extends ValidationStrategy<IBoard> {
         }
 
         const entityIds = this.viewModel.axes[this.axisWithEntity].map((columnOrRow) => columnOrRow.entity.id).filter((id) => !!id);
+        if (entityIds.length === 0) {
+            return Promise.resolve();
+        }
+
         this.loadingPromise = load<IEntityWithStartDate[]>(this.entityName + 's', { where: `Id in(${entityIds.join(',')})` })
             .then((entities) => {
                 this.loadedEntities = entities;
@@ -45,28 +49,28 @@ export default class EntityWithStartDate extends ValidationStrategy<IBoard> {
         return this.loadingPromise;
     }
 
-    public isRelationViolated(mainElement: HTMLElement, slaveElement: HTMLElement) {
-        const mainElementCoords: ICoords = JSON.parse(mainElement.dataset.dataItem!).coords;
+    public isRelationViolated(masterElement: HTMLElement, slaveElement: HTMLElement) {
+        const masterElementCoords: ICoords = JSON.parse(masterElement.dataset.dataItem!).coords;
         const slaveElementCoords: ICoords = JSON.parse(slaveElement.dataset.dataItem!).coords;
-        if (!mainElementCoords || !slaveElementCoords) {
+        if (!masterElementCoords || !slaveElementCoords) {
             return false;
         }
 
-        const mainElementEntity = this.loadedEntities.find((entity) => entity.Id === Number(mainElementCoords[this.axisWithEntity]));
+        const masterElementEntity = this.loadedEntities.find((entity) => entity.Id === Number(masterElementCoords[this.axisWithEntity]));
         const slaveElementEntity = this.loadedEntities.find((entity) => entity.Id === Number(slaveElementCoords[this.axisWithEntity]));
-        if (!mainElementEntity) {
+        if (!masterElementEntity) {
             return false;
         }
         if (!slaveElementEntity) {
             return true;
         }
 
-        const mainElementStartDate = dateUtils.parse(mainElementEntity.StartDate);
+        const masterElementStartDate = dateUtils.parse(masterElementEntity.StartDate);
         const slaveElementStartDate = dateUtils.parse(slaveElementEntity.StartDate);
-        if (!mainElementStartDate || !slaveElementStartDate) {
+        if (!masterElementStartDate || !slaveElementStartDate) {
             return false;
         }
 
-        return mainElementStartDate > slaveElementStartDate;
+        return masterElementStartDate > slaveElementStartDate;
     }
 }

@@ -2,15 +2,14 @@ import classnames from 'libs/classNames';
 import * as React from 'react';
 import labels from 'src/legend/component.legend.labels';
 import LegendRelations from 'src/legend/component.legend.relations';
-import { IOnSelectEventData } from 'src/legend/component.legend.wrapper';
-import { IRelationConfig } from 'src/legend/legend.model';
+import { RelationType } from 'src/relations';
 
 interface IComponentLegendProps {
     isExpanded: boolean;
     isVisible: boolean;
-    relationConfigs: IRelationConfig[];
+    visibleRelationTypes: Set<RelationType>;
     onExpansionStateChange: (newState: boolean) => void;
-    onRelationTypeSelect: (eventData: IOnSelectEventData) => void;
+    toggleRelationTypeVisibility: (relationType: RelationType) => void;
 }
 
 export default class ComponentLegend extends React.Component<IComponentLegendProps> {
@@ -58,7 +57,7 @@ export default class ComponentLegend extends React.Component<IComponentLegendPro
                         </button>
                     </div>
                 </div>
-                {this.props.isExpanded && <LegendRelations relationConfigs={this.props.relationConfigs} onSelect={this.props.onRelationTypeSelect}/>}
+                {this.props.isExpanded && <LegendRelations visibleRelationTypes={this.props.visibleRelationTypes} onSelect={this.props.toggleRelationTypeVisibility}/>}
             </div>
         );
     }

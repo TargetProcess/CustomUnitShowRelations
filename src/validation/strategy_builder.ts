@@ -17,10 +17,6 @@ export function buildStrategyForBoard(board: IBoard) {
     return new VoidStrategy();
 }
 
-export function buildStrategyDetailsBoard() {
-    return new VoidStrategy();
-}
-
 export function buildStrategyForTimeline() {
     return new VoidStrategy();
 }
