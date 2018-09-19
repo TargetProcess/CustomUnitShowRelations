@@ -7,9 +7,15 @@ interface IViolationsButtonProps {
     onClick: () => void;
 }
 
+function simplePluralize(word: string, count: number) {
+    return count > 1 ? word + 's' : word;
+}
+
 export default class ViolationsButton extends React.PureComponent<IViolationsButtonProps> {
     public render() {
-        const buttonClasses = classnames('tau-btn', 'tau-violations-btn', { 'tau-violations-btn__active': this.props.isActive });
+        const buttonClasses = classnames('tau-btn', 'tau-violations-btn',
+            { 'tau-checked': this.props.isActive, 'i-role-board-tooltip': !this.props.isActive }
+        );
 
         return (
             <button
@@ -17,9 +23,9 @@ export default class ViolationsButton extends React.PureComponent<IViolationsBut
                 role="show-violations-button"
                 className={buttonClasses}
                 type="button"
+                data-title="Focus on dependencies that are planned after their outbound dependents"
             >
-                <span className="tau-icon-general tau-icon-warning" />
-                <span>{this.props.violationsCount} inappropriate planned dates</span>
+                <span>{this.props.violationsCount} planning {simplePluralize('issue', this.props.violationsCount)}</span>
             </button>
         );
     }

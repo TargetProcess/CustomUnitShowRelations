@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as ReactDom from 'react-dom';
 import Application, { IApplicationState } from 'src/application';
 import ViewMode from 'src/view_mode';
-import ViolationsButton from 'src/violations_focus/ui/ViolationsButton';
+import ViolationsButton from 'src/violations_focus/ui/violations_button';
 import * as _ from 'underscore';
 
 const WRAPPER_CLASS = 'tau-board-header__control--relations';

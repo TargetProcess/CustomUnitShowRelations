@@ -30,7 +30,7 @@ export default class Hover {
         const $svg = this.getSvg();
         const title = this.findOrCreateTitleElement($svg);
         title.textContent = arrow.isViolated() ?
-            `${arrow.getRelation().relationType}, planning issue` :
+            `${arrow.getRelation().relationType} - Out of order` :
             `${arrow.getRelation().relationType}`;
     }
 

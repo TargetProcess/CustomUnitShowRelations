@@ -132,18 +132,13 @@
         display: flex;
         align-items: center;
 
-        &__active {
+        &:not(.tau-checked) {
             background: linear-gradient(to bottom,#fffbdf,#fdf4b4);
             border-color: #d9d1a2;
 
             &:hover {
                 background: linear-gradient(to bottom,#fffbdf,#f2e7a6);
             }
-        }
-
-        .tau-icon-warning {
-            display: inline-block;
-            margin-right: 2px;
         }
     }
 }

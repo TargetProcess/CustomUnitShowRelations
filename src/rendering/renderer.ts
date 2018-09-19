@@ -1,9 +1,10 @@
 import classnames from 'libs/classNames';
 import Application, { IApplicationState } from 'src/application';
 import { Arrow } from 'src/arrows';
+import { generateBezierCoords } from 'src/rendering/utils';
 import { IIntersection } from 'src/utils/intersection';
-import * as relationUtils from 'src/utils/relation.lines';
 import { isBoardConfigChanged } from 'src/utils/state';
+import * as styles from 'src/utils/styles';
 import { createSvgFromTemplate } from 'src/utils/svg';
 import ViewMode from 'src/view_mode';
 import * as _ from 'underscore';
@@ -95,7 +96,7 @@ export default class Renderer {
 
         const relation = arrow.getRelation();
         const hasViolations = arrow.isViolated();
-        const color = relationUtils.getRelationColor(relation.relationType, hasViolations);
+        const color = styles.getRelationColor(relation.relationType, hasViolations);
         const helperLine = createLine(arrow, {
             cssClass: classnames('helperLine', { helperLine__violated: hasViolations }),
             bezierCoords,
@@ -108,8 +109,8 @@ export default class Renderer {
             stroke: color
         });
 
-        line.setAttribute('marker-start', `url(#${relationUtils.getRelationTypeMarkerStartId(relation.relationType, hasViolations)})`);
-        line.setAttribute('marker-end', `url(#${relationUtils.getRelationTypeMarkerEndId(relation.relationType, hasViolations)})`);
+        line.setAttribute('marker-start', `url(#${styles.getRelationTypeMarkerStartId(relation.relationType, hasViolations)})`);
+        line.setAttribute('marker-end', `url(#${styles.getRelationTypeMarkerEndId(relation.relationType, hasViolations)})`);
 
         return [line, helperLine];
     }
@@ -157,7 +158,7 @@ export default class Renderer {
             return null;
         }
 
-        return relationUtils.generateBezierCoords(points.start, points.end);
+        return generateBezierCoords(points.start, points.end);
     }
 
     private getSvg() {
