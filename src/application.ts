@@ -16,8 +16,6 @@ export interface IApplicationState {
     isOnAppropriatePage: boolean;
     boardId: number;
     viewMode: ViewMode;
-    hideEmptyLanes: boolean;
-    currentPage: number;
     isUiActive: boolean;
     isFocusActive: boolean;
     cards: Card[];
@@ -35,8 +33,6 @@ const EMPTY_STATE: IApplicationState = {
     isOnAppropriatePage: false,
     boardId: -1,
     viewMode: ViewMode.Board,
-    hideEmptyLanes: false,
-    currentPage: -1,
     isUiActive: false,
     isFocusActive: false,
     cards: [],
@@ -138,15 +134,15 @@ export default class Application {
     }
 
     public async reinitialize(validationStrategy: ValidationStrategy, boardSettings: IBoardSettings) {
+        await this.disable();
+
         this.validationStrategy = validationStrategy;
         const { settings } = boardSettings;
         await this.setState({
             ...EMPTY_STATE,
             isOnAppropriatePage: true,
             boardId: settings.id,
-            viewMode: settings.viewMode,
-            hideEmptyLanes: !!settings.hideEmptyLanes,
-            currentPage: settings.page ? settings.page.x : 0
+            viewMode: settings.viewMode
         });
     }
 
