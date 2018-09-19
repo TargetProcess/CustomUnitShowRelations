@@ -26,7 +26,7 @@ export default class Arrows {
         const newArrows = differenceBy(extractedArrows, currentArrows, (a1, a2) => a1.equals(a2));
         const removedArrows = differenceBy(currentArrows, extractedArrows, (a1, a2) => a1.equals(a2));
         if (newArrows.length === 0 && removedArrows.length === 0) {
-            return;
+            return {};
         }
 
         const remainingArrows = _.difference(currentArrows, removedArrows);

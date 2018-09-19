@@ -1,4 +1,3 @@
-import * as $ from 'jquery';
 import Application, { IApplicationState } from 'src/application';
 import { Arrow } from 'src/arrows';
 import { isBoardConfigChanged } from 'src/utils/state';
@@ -22,12 +21,8 @@ export default class Hover {
         this.application.setState({ hoveredArrow: null });
     }
 
-    private getSvg() {
-        return $('svg.mashupCustomUnitShowRelations__svg');
-    }
-
     private addTitleToSvg(arrow: Arrow) {
-        const $svg = this.getSvg();
+        const $svg = this.application.getRenderingBackend().getSvg();
         const title = this.findOrCreateTitleElement($svg);
         title.textContent = arrow.isViolated() ?
             `${arrow.getRelation().relationType} - Out of order` :
@@ -51,8 +46,9 @@ export default class Hover {
             return {};
         }
 
-        this.getSvg().on('mouseenter', '.line', (evt) => this.hoverArrowById(Number(evt.target.dataset!.arrowId)));
-        this.getSvg().on('mouseleave', '.line', () => this.unhoverArrow());
+        const $svg = this.application.getRenderingBackend().getSvg();
+        $svg.on('mouseenter', '.line', (evt) => this.hoverArrowById(Number(evt.target.dataset!.arrowId)));
+        $svg.on('mouseleave', '.line', () => this.unhoverArrow());
         return {};
     }
 }

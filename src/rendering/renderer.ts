@@ -43,7 +43,6 @@ export default class Renderer {
         this.application.registerReducer(this.updateArrowLinesReducer.bind(this));
         this.application.registerReducer(this.handleUiChangesReducer.bind(this));
         this.application.registerReducer(this.handleTimelineOffsetChangedReducer.bind(this));
-        this.application.registerReducer(this.handleFocusReducer.bind(this));
     }
 
     public updateLinesForAllArrows() {
@@ -237,21 +236,6 @@ export default class Renderer {
         }
 
         this.updateLinesForAllArrows();
-        return {};
-    }
-
-    private async handleFocusReducer(changes: Readonly<Partial<IApplicationState>>) {
-        if (!this.isEnabled()) {
-            return {};
-        }
-
-        if (_.isUndefined(changes.isFocusActive)) {
-            return {};
-        }
-
-        const focusActiveClass = 'focus-active';
-        const $svg = this.getSvg();
-        changes.isFocusActive ? $svg.get(0).classList.add(focusActiveClass) : $svg.get(0).classList.remove(focusActiveClass);
         return {};
     }
 }

@@ -30,7 +30,7 @@ export default class Cards {
 
     private async updateCardsOnBoardChangedReducer(changes: Readonly<Partial<IApplicationState>>) {
         if (!this.application.getState().isOnAppropriatePage) {
-            return;
+            return {};
         }
 
         if (!isBoardConfigChanged(changes)) {

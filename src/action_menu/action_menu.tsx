@@ -1,6 +1,6 @@
 import * as React from 'react';
+import LegendWrapper from 'src/action_menu/ui/legend_wrapper';
 import Application, { IApplicationState } from 'src/application';
-import ComponentLegendWrapper from 'src/legend/component.legend.wrapper';
 import { RelationType } from 'src/relations';
 import tausTrack from 'src/utils/taus';
 import ViewMode from 'src/view_mode';
@@ -8,9 +8,9 @@ import actionsIntegration from 'tau/api/actions/v1';
 import * as _ from 'underscore';
 
 const onPropsUpdated = (_ as any).Callbacks();
-actionsIntegration.addControl(<ComponentLegendWrapper onPropsUpdated={onPropsUpdated} />);
+actionsIntegration.addControl(<LegendWrapper onPropsUpdated={onPropsUpdated} />);
 
-export default class LegendModel {
+export default class ActionMenu {
     private application: Application;
 
     constructor(application: Application) {

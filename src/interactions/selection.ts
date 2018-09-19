@@ -6,7 +6,6 @@ import tausTrack from 'src/utils/taus';
 import * as _ from 'underscore';
 
 const SELECTED_LINE_CLASS = 'line__selected';
-const MUTED_LINE_CLASS = 'line__muted';
 
 export default class Selection {
     private application: Application;
@@ -17,33 +16,29 @@ export default class Selection {
         this.application.registerReducer(this.registerClickListenersReducer.bind(this));
         this.application.registerReducer(this.clearSelectedArrowsReducer.bind(this));
         this.application.registerReducer(this.highlightSelectedArrowsReducer.bind(this));
-    }
-
-    private getSvg() {
-        return $('svg.mashupCustomUnitShowRelations__svg');
+        this.application.registerReducer(this.unhighlightExtraArrowsReducer.bind(this));
     }
 
     private getGrid() {
         return $('.i-role-grid');
     }
 
-    private selectLine(arrow: Arrow) {
-        this.getSvg().find(`.line[data-arrow-id="${arrow.getId()}"]`).each((_index, element) => {
-            element.classList.add(SELECTED_LINE_CLASS);
-            element.classList.remove(MUTED_LINE_CLASS);
+    private selectArrow(arrow: Arrow) {
+        this.application.getRenderingBackend().getSvg().find(`.line[data-arrow-id="${arrow.getId()}"]`).each((_index, lineElement) => {
+            lineElement.classList.add(SELECTED_LINE_CLASS);
         });
     }
 
-    private clearAllSelectedLines() {
-        this.getSvg().find(`.${SELECTED_LINE_CLASS}`).each((_index, element) => element.classList.remove(SELECTED_LINE_CLASS));
-    }
+    private unselectExtraArrows() {
+        const { selectedArrows } = this.application.getState();
+        const selectedArrowIds = new Set(selectedArrows.map((arrow) => arrow.getId()));
 
-    private muteAllLines() {
-        this.getSvg().find('.line').each((_index, element) => element.classList.add(MUTED_LINE_CLASS));
-    }
-
-    private clearAllMutedLines() {
-        this.getSvg().find(`.${MUTED_LINE_CLASS}`).each((_index, element) => element.classList.remove(MUTED_LINE_CLASS));
+        this.application.getRenderingBackend().getSvg().find(`.${SELECTED_LINE_CLASS}`).each((_index, element) => {
+            const arrowId = Number(element.dataset!.arrowId);
+            if (!selectedArrowIds.has(arrowId)) {
+                element.classList.remove(SELECTED_LINE_CLASS);
+            }
+        });
     }
 
     private async registerClickListenersReducer(changes: Readonly<Partial<IApplicationState>>) {
@@ -65,18 +60,17 @@ export default class Selection {
 
             return false;
         };
-        this.getSvg().on('mousedown', '.line', handleLineClick);
-        this.getSvg().on('mousedown', '.helperLine', handleLineClick);
+
+        const $svg = this.application.getRenderingBackend().getSvg();
+        $svg.on('mousedown', '.line', handleLineClick);
+        $svg.on('mousedown', '.helperLine', handleLineClick);
 
         this.getGrid().on('mousedown.highlights', ({ target }) => {
             if ($(target).parents().hasClass('i-role-card')) {
                 return;
             }
 
-            tausTrack({
-                name: 'reset-highlights'
-            });
-
+            tausTrack({ name: 'reset-highlights' });
             this.application.setState({ selectedArrows: [] });
         });
 
@@ -97,17 +91,19 @@ export default class Selection {
         }
 
         const { selectedArrows } = this.application.getState();
+        this.unselectExtraArrows();
+        selectedArrows.forEach((arrow) => this.selectArrow(arrow));
 
-        this.clearAllSelectedLines();
-        this.clearAllMutedLines();
+        return {};
+    }
 
-        if (selectedArrows.length === 0) {
+    private async unhighlightExtraArrowsReducer(changes: Readonly<Partial<IApplicationState>>) {
+        if (!changes.visibleRelationTypes) {
             return {};
         }
 
-        this.muteAllLines();
-        selectedArrows.forEach((arrow) => this.selectLine(arrow));
-
-        return {};
+        const { selectedArrows, visibleRelationTypes } = this.application.getState();
+        const newSelectedArrows = selectedArrows.filter((selectedArrow) => visibleRelationTypes.has(selectedArrow.getRelation().relationType));
+        return { selectedArrows: newSelectedArrows };
     }
 }

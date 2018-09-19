@@ -1,6 +1,7 @@
 import * as $ from 'jquery';
 import Application, { IApplicationState } from 'src/application';
 import { Card } from 'src/cards';
+import { getHighlightedArrows } from 'src/utils/state';
 import * as _ from 'underscore';
 
 const HIGHLIGHTED_GRID_CLASS = 'mashupCustomUnitShowRelations';
@@ -27,32 +28,25 @@ export default class CardHighlighter {
         card.getElement().classList.add(HIGHLIGHTED_CARD_CLASS);
     }
 
-    private unhighlightAllCards() {
-        $(`.${HIGHLIGHTED_CARD_CLASS}`).removeClass(HIGHLIGHTED_CARD_CLASS);
+    private unhighlightExtraCards(cardsToHighlight: Card[]) {
+        const highlightedCardElements = new Set(cardsToHighlight.map((card) => card.getElement()));
+        $(`line.${HIGHLIGHTED_CARD_CLASS}`).each((_index, cardElement) => {
+            if (!highlightedCardElements.has(cardElement)) {
+                cardElement.classList.remove(HIGHLIGHTED_CARD_CLASS);
+            }
+        });
     }
 
     private getCardsToHighlight() {
-        return _.flatten(this.getArrowsToHighlight().map((arrow) => [arrow.getMasterCard(), arrow.getSlaveCard()])) as Card[];
+        return _.flatten(this.getActiveArrows().map((arrow) => [arrow.getMasterCard(), arrow.getSlaveCard()])) as Card[];
     }
 
-    private getArrowsToHighlight() {
-        const { isFocusActive, isUiActive, arrows, visibleRelationTypes, hoveredArrow, selectedArrows } = this.application.getState();
+    private getActiveArrows() {
+        const { arrows, visibleRelationTypes } = this.application.getState();
 
-        if (!isUiActive) {
-            return [];
-        }
-
-        if (isFocusActive) {
-            const violatedArrows = arrows.filter((arrow) => arrow.isViolated() && visibleRelationTypes.has(arrow.getRelation().relationType));
-            return hoveredArrow ? [hoveredArrow, ...violatedArrows] : violatedArrows;
-        }
-
-        if (selectedArrows.length !== 0) {
-            return hoveredArrow ? [hoveredArrow, ...selectedArrows] : selectedArrows;
-        }
-
-        if (hoveredArrow) {
-            return [hoveredArrow];
+        const highlightedArrows = getHighlightedArrows(this.application.getState());
+        if (highlightedArrows.length !== 0) {
+            return highlightedArrows;
         }
 
         return arrows.filter((arrow) => visibleRelationTypes.has(arrow.getRelation().relationType));
@@ -64,7 +58,8 @@ export default class CardHighlighter {
             return {};
         }
 
-        this.unhighlightAllCards();
+        const cardsToHighlight = this.getCardsToHighlight();
+        this.unhighlightExtraCards(cardsToHighlight);
 
         if (!this.application.getState().isUiActive) {
             this.disableHighlighting();
@@ -72,12 +67,8 @@ export default class CardHighlighter {
         }
         this.enableHighlighting();
 
-        const cardsToHighlight = this.getCardsToHighlight();
-        if (cardsToHighlight.length === 0) {
-            return {};
-        }
-
         cardsToHighlight.forEach((card) => this.highlightCard(card));
+
         return {};
     }
 }

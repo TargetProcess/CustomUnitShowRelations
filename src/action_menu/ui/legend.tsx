@@ -1,10 +1,15 @@
 import classnames from 'libs/classNames';
 import * as React from 'react';
-import labels from 'src/legend/component.legend.labels';
-import LegendRelations from 'src/legend/component.legend.relations';
+import LegendRelations from 'src/action_menu/ui/legend_relations';
 import { RelationType } from 'src/relations';
+import * as intl from 'tau-intl';
 
-interface IComponentLegendProps {
+const BUTTON_TITLE_EXPANDED = intl.formatMessage('Click to hide relations');
+const BUTTON_TITLE_COLLAPSED = intl.formatMessage('Click to show relations');
+const BUTTON_TEXT_EXPANDED = intl.formatMessage('Hide');
+const BUTTON_TEXT_COLLAPSED = intl.formatMessage('Show');
+
+interface ILegendProps {
     isExpanded: boolean;
     isVisible: boolean;
     visibleRelationTypes: Set<RelationType>;
@@ -12,7 +17,7 @@ interface IComponentLegendProps {
     toggleRelationTypeVisibility: (relationType: RelationType) => void;
 }
 
-export default class ComponentLegend extends React.Component<IComponentLegendProps> {
+export default class Legend extends React.Component<ILegendProps> {
     public onClick = () => {
         this.props.onExpansionStateChange(!this.props.isExpanded);
     }
@@ -34,8 +39,8 @@ export default class ComponentLegend extends React.Component<IComponentLegendPro
         const buttonCssClass = classnames(classConfig);
         const labelCssClass = classnames(labelClassConfig);
 
-        const buttonTitle = isExpanded ? labels.BUTTON_TITLE_EXPANDED : labels.BUTTON_TITLE_COLLAPSED;
-        const buttonText = isExpanded ? labels.BUTTON_TEXT_EXPANDED : labels.BUTTON_TEXT_COLLAPSED;
+        const buttonTitle = isExpanded ? BUTTON_TITLE_EXPANDED : BUTTON_TITLE_COLLAPSED;
+        const buttonText = isExpanded ? BUTTON_TEXT_EXPANDED : BUTTON_TEXT_COLLAPSED;
 
         if (!this.props.isVisible) {
             return null;

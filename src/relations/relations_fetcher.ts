@@ -130,13 +130,13 @@ export default class RelationsFetcher {
     private onRelationRemoved(event: IRelationRemovedEvent) {
         const masterEntityId = event.data.obj.master.id;
         const cacheForRelation = this.relationsByMasterIdCache.get(masterEntityId) || [];
-        const amendedCacheForRelations = cacheForRelation.filter((relation) => relation.id === event.data.id);
+        const amendedCacheForRelations = cacheForRelation.filter((relation) => relation.id !== event.data.id);
         this.relationsByMasterIdCache.set(masterEntityId, amendedCacheForRelations);
 
         const { relations: visibleRelations } = this.application.getState();
         const amendedVisibleRelations = visibleRelations.filter((relation) => relation.id !== event.data.id);
         if (visibleRelations.length !== amendedVisibleRelations.length) {
-            this.application.setState({ relations: amendedCacheForRelations });
+            this.application.setState({ relations: amendedVisibleRelations });
         }
     }
 

@@ -19,6 +19,10 @@ export default abstract class RenderingBackend {
         return $('.i-role-grid');
     }
 
+    public getSvg() {
+        return $('svg.mashupCustomUnitShowRelations__svg');
+    }
+
     public appendSvg($svg: JQuery) {
         this.getGrid().append($svg);
     }

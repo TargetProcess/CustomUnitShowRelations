@@ -1,12 +1,12 @@
 import * as React from 'react';
-import ComponentLegend from 'src/legend/component.legend';
+import Legend from 'src/action_menu/ui/legend';
 import { RelationType } from 'src/relations';
 
-interface IComponentLegendWrapperProps {
-    onPropsUpdated: { add: (callback: (newProps: IComponentLegendWrapperState) => void, context: object) => void, remove: (context: object) => void };
+interface ILegendWrapperProps {
+    onPropsUpdated: { add: (callback: (newProps: ILegendWrapperState) => void, context: object) => void, remove: (context: object) => void };
 }
 
-interface IComponentLegendWrapperState {
+interface ILegendWrapperState {
     isVisible: boolean;
     isExpanded: boolean;
     visibleRelationTypes: Set<RelationType>;
@@ -14,8 +14,8 @@ interface IComponentLegendWrapperState {
     toggleRelationTypeVisibility: (relationType: RelationType) => void;
 }
 
-export default class ComponentLegendWrapper extends React.Component<IComponentLegendWrapperProps, IComponentLegendWrapperState> {
-    constructor(props: IComponentLegendWrapperProps) {
+export default class LegendWrapper extends React.Component<ILegendWrapperProps, ILegendWrapperState> {
+    constructor(props: ILegendWrapperProps) {
         super(props);
 
         this.props.onPropsUpdated.add((newProps) => {
@@ -28,6 +28,6 @@ export default class ComponentLegendWrapper extends React.Component<IComponentLe
     }
 
     public render() {
-        return <ComponentLegend {...this.state} />;
+        return <Legend {...this.state} />;
     }
 }

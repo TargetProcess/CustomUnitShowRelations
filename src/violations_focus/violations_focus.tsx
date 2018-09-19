@@ -6,6 +6,7 @@ import ViolationsButton from 'src/violations_focus/ui/violations_button';
 import * as _ from 'underscore';
 
 const WRAPPER_CLASS = 'tau-board-header__control--relations';
+const SVG_FOCUS_ACTIVE_CLASS = 'focus-active';
 
 export default class ViolationFocus {
     private application: Application;
@@ -17,6 +18,7 @@ export default class ViolationFocus {
         this.application.registerReducer(this.updateUIReducer.bind(this));
         this.application.registerReducer(this.clearFocusReducer.bind(this));
         this.application.registerReducer(this.disableFocusOnAllViolatedLinesHiddenReducer.bind(this));
+        this.application.registerReducer(this.updateSvgReducer.bind(this));
     }
 
     private updateUi() {
@@ -122,6 +124,16 @@ export default class ViolationFocus {
             return { isFocusActive: false };
         }
 
+        return {};
+    }
+
+    private async updateSvgReducer(changes: Readonly<Partial<IApplicationState>>) {
+        if (_.isUndefined(changes.isFocusActive)) {
+            return {};
+        }
+
+        const $svg = this.application.getRenderingBackend().getSvg();
+        changes.isFocusActive ? $svg.get(0).classList.add(SVG_FOCUS_ACTIVE_CLASS) : $svg.get(0).classList.remove(SVG_FOCUS_ACTIVE_CLASS);
         return {};
     }
 }

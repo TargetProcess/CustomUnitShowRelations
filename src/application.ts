@@ -1,9 +1,9 @@
 import * as _isEqual from 'lodash.isequal';
-import { Arrow, Arrows } from 'src/arrows';
+import { ActionMenu } from 'src/action_menu';
+import { Arrow, Arrows, ArrowsHighlighter } from 'src/arrows';
 import { Card, CardHighlighter, Cards } from 'src/cards';
 import { IBoardSettings } from 'src/index';
 import { Hover, Selection } from 'src/interactions';
-import LegendModel from 'src/legend/legend.model';
 import { IRelation, RelationsFetcher, RelationType } from 'src/relations';
 import { getBackendByViewMode, Renderer } from 'src/rendering';
 import { Settings } from 'src/settings';
@@ -48,7 +48,7 @@ export default class Application {
     // @ts-ignore: No unused
     private relationsFetcher: RelationsFetcher;
     // @ts-ignore: No unused
-    private legend: LegendModel;
+    private actionMenu: ActionMenu;
     // @ts-ignore: No unused
     private violationFocus: ViolationFocus;
     // @ts-ignore: No unused
@@ -57,6 +57,8 @@ export default class Application {
     private arrows: Arrows;
     private cards: Cards;
     private renderer: Renderer;
+    // @ts-ignore: No unused
+    private arrowsHighlighter: ArrowsHighlighter;
     // @ts-ignore: No unused
     private cardHighlighter: CardHighlighter;
     // @ts-ignore: No unused
@@ -71,11 +73,12 @@ export default class Application {
     constructor() {
         this.relationsFetcher = new RelationsFetcher(this);
         this.violationFocus = new ViolationFocus(this);
-        this.legend = new LegendModel(this);
+        this.actionMenu = new ActionMenu(this);
         this.settings = new Settings(this);
         this.arrows = new Arrows(this);
         this.cards = new Cards(this);
         this.renderer = new Renderer(this);
+        this.arrowsHighlighter = new ArrowsHighlighter(this);
         this.cardHighlighter = new CardHighlighter(this);
         this.hover = new Hover(this);
         this.selection = new Selection(this);
