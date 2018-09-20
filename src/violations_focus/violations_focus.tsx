@@ -133,6 +133,10 @@ export default class ViolationFocus {
         }
 
         const $svg = this.application.getRenderingBackend().getSvg();
+        if ($svg.length === 0) {
+            return {};
+        }
+
         changes.isFocusActive ? $svg.get(0).classList.add(SVG_FOCUS_ACTIVE_CLASS) : $svg.get(0).classList.remove(SVG_FOCUS_ACTIVE_CLASS);
         return {};
     }

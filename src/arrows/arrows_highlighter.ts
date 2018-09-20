@@ -16,11 +16,21 @@ export default class ArrowsHighlighter {
     }
 
     private enableHighlighting() {
-        this.application.getRenderingBackend().getSvg().get(0).classList.add(HIGHLIGTED_SVG_CLASS);
+        const $svg = this.application.getRenderingBackend().getSvg();
+        if ($svg.length === 0) {
+            return;
+        }
+
+        $svg.get(0).classList.add(HIGHLIGTED_SVG_CLASS);
     }
 
     private disableHighlighting() {
-        this.application.getRenderingBackend().getSvg().get(0).classList.remove(HIGHLIGTED_SVG_CLASS);
+        const $svg = this.application.getRenderingBackend().getSvg();
+        if ($svg.length === 0) {
+            return;
+        }
+
+        $svg.get(0).classList.remove(HIGHLIGTED_SVG_CLASS);
     }
 
     private highlightArrow(arrow: Arrow) {
