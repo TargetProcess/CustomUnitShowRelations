@@ -170,10 +170,15 @@ export default class RelationsFetcher {
             include: '[Slave[Id],Master[Id],RelationType[Name]]'
         });
         const relations = rawRelations.map(processRawRelation);
-        relations.forEach((relation) => {
-            const cacheForRelation = this.relationsByMasterIdCache.get(relation.masterEntityId) || [];
-            cacheForRelation.push(relation);
-            this.relationsByMasterIdCache.set(relation.masterEntityId, _.uniq(cacheForRelation));
+        relations.forEach((newRelation) => {
+            const cacheForRelation = this.relationsByMasterIdCache.get(newRelation.masterEntityId) || [];
+            const alreadyInCache = cacheForRelation.some((relation) => relation.id === newRelation.id);
+            if (alreadyInCache) {
+                return;
+            }
+
+            cacheForRelation.push(newRelation);
+            this.relationsByMasterIdCache.set(newRelation.masterEntityId, _.uniq(cacheForRelation));
         });
 
         return relations;

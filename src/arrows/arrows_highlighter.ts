@@ -51,7 +51,8 @@ export default class ArrowsHighlighter {
     }
 
     private async updateHighlightingReducer(changes: Readonly<Partial<IApplicationState>>) {
-        if (!changes.selectedArrows && _.isUndefined(changes.hoveredArrow) && _.isUndefined(changes.isFocusActive)) {
+        if (!changes.selectedArrows && _.isUndefined(changes.hoveredArrow) && !changes.arrows &&
+            _.isUndefined(changes.isFocusActive) && !changes.visibleRelationTypes) {
             return {};
         }
 
