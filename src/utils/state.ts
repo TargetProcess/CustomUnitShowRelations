@@ -21,9 +21,5 @@ export function getHighlightedArrows(state: IApplicationState) {
         return hoveredArrow ? [hoveredArrow, ...selectedArrows] : selectedArrows;
     }
 
-    if (hoveredArrow) {
-        return [hoveredArrow];
-    }
-
     return [];
 }
