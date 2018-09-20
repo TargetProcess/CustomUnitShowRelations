@@ -13,20 +13,11 @@ function createConfig(opts_) {
     // mashup unique name
     const mashupName = pkg.name;
 
-    // you should use format <something>.config.js to allow Mashup Manager autodiscover
-    // config file
-    const outputConfigFileName = './mashup.config.js';
-
     const config = {};
 
     config.entry = {
-        // process config js module from JSON file
-        configData: [
-            'targetprocess-mashup-config-loader' +
-            `?libraryTarget=${mashupName}&outputFile=${outputConfigFileName}!./src/config.json`
-        ],
         // produce system configs from JSON file
-        manifestData: ['targetprocess-mashup-manifest-loader!./src/manifest.json'],
+        manifestData: ['targetprocess-mashup-manifest-loader!./assets/manifest.json'],
         // main entry point
         index: ['./src/index.ts']
     };
@@ -90,9 +81,7 @@ function createConfig(opts_) {
     }
 
     config.plugins = [
-        new TargetprocessMashupPlugin(mashupName, {
-            useConfig: true
-        }),
+        new TargetprocessMashupPlugin(mashupName),
         new webpack.DefinePlugin({
             'process.env': {
                 NODE_ENV: JSON.stringify(process.env.NODE_ENV)
@@ -102,13 +91,8 @@ function createConfig(opts_) {
         new webpack.BannerPlugin(`v${pkg.version} Build ${new Date()}`)
     ];
 
-    const toExclude = [
-        'configData.js',
-        'manifestData.js'
-    ];
-
     config.plugins = config.plugins.concat(new CombineAssetsPlugin({
-        toExclude: toExclude
+        toExclude: ['manifestData.js']
     }));
 
     if (opts.production) {
