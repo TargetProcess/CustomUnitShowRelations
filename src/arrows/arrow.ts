@@ -2,12 +2,14 @@ import { Card } from 'src/cards';
 import { IRelation } from 'src/relations';
 
 export default class Arrow<T extends Card = Card> {
+    private id: string;
     private masterCard: T;
     private slaveCard: T;
     private relation: IRelation;
     private violated: boolean;
 
-    public constructor(masterCard: T, slaveCard: T, relation: IRelation, isViolated: boolean) {
+    public constructor(id: string, masterCard: T, slaveCard: T, relation: IRelation, isViolated: boolean) {
+        this.id = id;
         this.masterCard = masterCard;
         this.slaveCard = slaveCard;
         this.relation = relation;
@@ -15,7 +17,7 @@ export default class Arrow<T extends Card = Card> {
     }
 
     public getId() {
-        return this.relation.id;
+        return this.id;
     }
 
     public getMasterCard() {

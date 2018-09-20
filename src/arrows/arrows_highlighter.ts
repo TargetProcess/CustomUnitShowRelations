@@ -4,7 +4,7 @@ import { getHighlightedArrows } from 'src/utils/state';
 import * as _ from 'underscore';
 
 const HIGHLIGTED_SVG_CLASS = 'arrows-highlighted';
-const HIGHLIGTED_ARROW_CLASS = 'highlighted';
+const HIGHLIGTED_LINE_CLASS = 'line__highlighted';
 
 export default class ArrowsHighlighter {
     private application: Application;
@@ -25,17 +25,17 @@ export default class ArrowsHighlighter {
 
     private highlightArrow(arrow: Arrow) {
         this.application.getRenderingBackend().getSvg().find(`.line[data-arrow-id="${arrow.getId()}"]`).each((_index, element) => {
-            element.classList.add(HIGHLIGTED_ARROW_CLASS);
+            element.classList.add(HIGHLIGTED_LINE_CLASS);
         });
     }
 
     private unhighlightExtraArrows(arrowsToHighlight: Arrow[]) {
         const highlightedArrowIds = new Set(arrowsToHighlight.map((arrow) => arrow.getId()));
 
-        $(`.${HIGHLIGTED_ARROW_CLASS}`).each((_index, lineElement) => {
-            const arrowId = Number(lineElement.dataset!.arrowId);
+        $(`.line.${HIGHLIGTED_LINE_CLASS}`).each((_index, lineElement) => {
+            const arrowId = lineElement.dataset.arrowId!;
             if (!highlightedArrowIds.has(arrowId)) {
-                lineElement.classList.remove(HIGHLIGTED_ARROW_CLASS);
+                lineElement.classList.remove(HIGHLIGTED_LINE_CLASS);
             }
         });
     }

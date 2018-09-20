@@ -7,8 +7,7 @@ const CombineAssetsPlugin = require('combine-assets-plugin');
 
 function createConfig(opts_) {
     const opts = Object.assign({
-        production: false,
-        mashupManager: false
+        production: false
     }, opts_);
 
     // mashup unique name
@@ -26,6 +25,8 @@ function createConfig(opts_) {
             'targetprocess-mashup-config-loader' +
             `?libraryTarget=${mashupName}&outputFile=${outputConfigFileName}!./src/config.json`
         ],
+        // produce system configs from JSON file
+        manifestData: ['targetprocess-mashup-manifest-loader!./src/manifest.json'],
         // main entry point
         index: ['./src/index.ts']
     };
@@ -34,11 +35,6 @@ function createConfig(opts_) {
         modules: [path.resolve(__dirname, '..'), 'node_modules'],
         extensions: ['.js', '.jsx', '.ts', '.tsx', '.json']
     };
-
-    if (!opts.mashupManager) {
-        // produce system configs from JSON file
-        config.entry.manifestData = ['targetprocess-mashup-manifest-loader!./src/manifest.json'];
-    }
 
     config.output = {
         filename: '[name].js',
@@ -106,20 +102,12 @@ function createConfig(opts_) {
         new webpack.BannerPlugin(`v${pkg.version} Build ${new Date()}`)
     ];
 
-    let toConcat = {};
     const toExclude = [
         'configData.js',
         'manifestData.js'
     ];
 
-    if (opts.mashupManager) {
-        toConcat = {
-            'index.js': [outputConfigFileName, 'index.js']
-        };
-    }
-
     config.plugins = config.plugins.concat(new CombineAssetsPlugin({
-        toConcat: toConcat,
         toExclude: toExclude
     }));
 

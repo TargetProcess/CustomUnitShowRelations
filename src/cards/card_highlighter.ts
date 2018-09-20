@@ -30,7 +30,7 @@ export default class CardHighlighter {
 
     private unhighlightExtraCards(cardsToHighlight: Card[]) {
         const highlightedCardElements = new Set(cardsToHighlight.map((card) => card.getElement()));
-        $(`line.${HIGHLIGHTED_CARD_CLASS}`).each((_index, cardElement) => {
+        $(`.${HIGHLIGHTED_CARD_CLASS}`).each((_index, cardElement) => {
             if (!highlightedCardElements.has(cardElement)) {
                 cardElement.classList.remove(HIGHLIGHTED_CARD_CLASS);
             }
@@ -54,7 +54,7 @@ export default class CardHighlighter {
 
     private async updateHighlightingReducer(changes: Readonly<Partial<IApplicationState>>) {
         if (!changes.cards && !changes.arrows && !changes.visibleRelationTypes && _.isUndefined(changes.isUiActive) &&
-            _.isUndefined(changes.isFocusActive) && _.isUndefined(changes.hoveredArrow) && !changes.selectedArrows) {
+            _.isUndefined(changes.isFocusActive) && !changes.selectedArrows && _.isUndefined(changes.hoveredArrow)) {
             return {};
         }
 

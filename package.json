@@ -12,16 +12,17 @@
         "start": "node scripts/startWatcher.js",
         "start:server": "cross-env NODE_ENV=development webpack-dev-server --config webpack/development.config.js",
         "build:development": "shx rm -rf build/development && cross-env NODE_ENV=development webpack --config webpack/development.config.js --output-path build/development",
-        "build:library:docs": "shjs scripts/buildLibraryDocs.js",
-        "build:library": "shx rm -rf build/library && cross-env NODE_ENV=production webpack --config webpack/library.config.js --output-path build/library --progress && npm run build:library:docs",
-        "build:manager": "shx rm -rf build/manager && cross-env NODE_ENV=production webpack --config webpack/manager.config.js --output-path build/manager --progress && cd build/manager && shx rm mashup.config.js",
-        "build:all": "npm run build:library && npm run build:manager",
+        "build": "shx rm -rf build/library && cross-env NODE_ENV=production webpack --config webpack/library.config.js --output-path build/library --progress",
         "lint": "npm run lint:eslint && npm run lint:tslint",
         "lint:eslint": "eslint \"**/*.{js,jsx}\"",
         "lint:tslint": "tslint --project tsconfig.json \"**/*.{ts,tsx}\"",
         "test": "jest"
     },
     "license": "MIT",
+    "dependencies": {
+        "lodash.isequal": "^4.5.0",
+        "tslib": "^1.9.3"
+    },
     "devDependencies": {
         "@types/jquery": "^3.3.6",
         "@types/react": "^15.6.19",
@@ -81,9 +82,5 @@
         "modulePaths": [
             "<rootDir>"
         ]
-    },
-    "dependencies": {
-        "lodash.isequal": "^4.5.0",
-        "tslib": "^1.9.3"
     }
 }

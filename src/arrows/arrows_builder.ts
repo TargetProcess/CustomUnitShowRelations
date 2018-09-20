@@ -14,6 +14,7 @@ export default function buildArrows<T extends Card = Card>(cards: T[], relations
 
     const result: Array<Arrow<T>> = [];
     relations.forEach((relation) => {
+        let amountOfArrowsForRelation = 0;
         const masterCards = cardsGroupedByEntityId.get(relation.masterEntityId) || [];
         masterCards.forEach((masterCard) => {
             if (!masterCard.isVisible()) {
@@ -25,9 +26,11 @@ export default function buildArrows<T extends Card = Card>(cards: T[], relations
                 if (!slaveCard.isVisible()) {
                     return;
                 }
+                amountOfArrowsForRelation++;
 
                 const isRelationViolated = validationStrategy.isRelationViolated(masterCard.getElement(), slaveCard.getElement());
                 result.push(new Arrow(
+                    `${relation.id}-${amountOfArrowsForRelation}`,
                     masterCard,
                     slaveCard,
                     relation,

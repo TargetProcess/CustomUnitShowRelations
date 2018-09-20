@@ -11,7 +11,7 @@ export default class Hover {
         this.application.registerReducer(this.registerHoverListenersReducer.bind(this));
     }
 
-    private hoverArrowById(arrowId: number) {
+    private hoverArrowById(arrowId: string) {
         const arrowToHover = this.application.getState().arrows.find((arrow) => arrow.getId() === arrowId)!;
         this.addTitleToSvg(arrowToHover);
         this.application.setState({ hoveredArrow: arrowToHover });
@@ -47,7 +47,7 @@ export default class Hover {
         }
 
         const $svg = this.application.getRenderingBackend().getSvg();
-        $svg.on('mouseenter', '.line', (evt) => this.hoverArrowById(Number(evt.target.dataset!.arrowId)));
+        $svg.on('mouseenter', '.line', (evt) => this.hoverArrowById(evt.target.dataset.arrowId!));
         $svg.on('mouseleave', '.line', () => this.unhoverArrow());
         return {};
     }

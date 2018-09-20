@@ -34,7 +34,7 @@ export default class Selection {
         const selectedArrowIds = new Set(selectedArrows.map((arrow) => arrow.getId()));
 
         this.application.getRenderingBackend().getSvg().find(`.${SELECTED_LINE_CLASS}`).each((_index, element) => {
-            const arrowId = Number(element.dataset!.arrowId);
+            const arrowId = element.dataset.arrowId!;
             if (!selectedArrowIds.has(arrowId)) {
                 element.classList.remove(SELECTED_LINE_CLASS);
             }
@@ -49,7 +49,7 @@ export default class Selection {
         const handleLineClick = (evt: JQuery.Event<HTMLElement, null>) => {
             const { arrows, selectedArrows } = this.application.getState();
 
-            const clickedArrowId = Number(evt.target.dataset!.arrowId);
+            const clickedArrowId = evt.target.dataset.arrowId;
             const clickedArrow = arrows.find((arrow) => arrow.getId() === clickedArrowId)!;
             const wasSelected = selectedArrows.includes(clickedArrow);
             const newSelectedArrows = wasSelected ?

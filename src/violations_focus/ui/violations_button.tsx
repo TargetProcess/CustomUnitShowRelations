@@ -23,7 +23,8 @@ export default class ViolationsButton extends React.PureComponent<IViolationsBut
                 role="show-violations-button"
                 className={buttonClasses}
                 type="button"
-                data-title="Focus on dependencies that are planned after their outbound dependents"
+                // tslint:disable-next-line:no-irregular-whitespace - irregular whitespace to prevent line break in tooltip in Chrome
+                data-title="Focus on dependencies which are planned after their downstream dependents "
             >
                 <span>{this.props.violationsCount} planning {simplePluralize('issue', this.props.violationsCount)}</span>
             </button>
