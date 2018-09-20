@@ -3,16 +3,9 @@
       "module": "es2015",
       "moduleResolution": "node",
       "baseUrl": ".",
-      "target": "es5",
+      "target": "es2017",
       "sourceMap": true,
       "jsx": "react",
-      "importHelpers": true,
-      "downlevelIteration": true,
-      "lib": [
-        "dom",
-        "es2015",
-        "es2016"
-      ],
 
       "strict": true,
       "alwaysStrict": true,
