@@ -1,4 +1,4 @@
-import svgTemplate from 'assets/svg.html';
+import svgTemplate from 'assets/svg.template';
 import * as $ from 'jquery';
 import { relationsConfigs } from 'src/relations';
 import * as styles from 'src/utils/styles';

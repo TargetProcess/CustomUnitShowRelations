@@ -1,22 +1,24 @@
 {
-    "name": "CustomUnitShowRelations",
+    "name": "@targetprocess/custom_unit_show_relations",
     "version": "3.0.0",
     "description": "Show relations as arrows on a Board, List View and Timeline View",
-    "keywords": [
-        "relations",
-        "targetprocess",
-        "mashup"
-    ],
     "author": "Aliaksei Shytkin <shitkin@targetprocess.com>",
+    "contributors": [
+        "Aliaksei Shytkin <shitkin@targetprocess.com>",
+        "Sergey Mostovoy <mostovoy@targetprocess.com>",
+        "Vladimir Tikhonov <tikhonov@targetprocess.com>"
+    ],
     "scripts": {
         "start": "node scripts/startWatcher.js",
-        "start:server": "cross-env NODE_ENV=development webpack-dev-server --config webpack/development.config.js",
-        "build:development": "shx rm -rf build/development && cross-env NODE_ENV=development webpack --config webpack/development.config.js --output-path build/development",
-        "build": "shx rm -rf build/library && cross-env NODE_ENV=production webpack --config webpack/library.config.js --output-path build/library --progress",
+        "start:server": "NODE_ENV=development webpack-dev-server",
+        "build": "npm run clean:dist && NODE_ENV=production webpack",
+        "build:development": "npm run clean:development && NODE_ENV=development webpack --output-path build/development",
         "lint": "npm run lint:eslint && npm run lint:tslint",
         "lint:eslint": "eslint \"**/*.{js,jsx}\"",
         "lint:tslint": "tslint --project tsconfig.json \"**/*.{ts,tsx}\"",
-        "test": "jest"
+        "test": "jest",
+        "clean:dist": "rimraf dist/*",
+        "clean:development": "rimraf build/development/*"
     },
     "license": "MIT",
     "dependencies": {
@@ -35,7 +37,6 @@
         "babel-plugin-transform-runtime": "^6.23.0",
         "babel-preset-env": "^1.7.0",
         "combine-assets-plugin": "targetprocess/combine-assets-plugin",
-        "cross-env": "^1.0.8",
         "css-loader": "^0.28.11",
         "eslint": "^5.4.0",
         "eslint-plugin-babel": "^5.1.0",
@@ -43,9 +44,8 @@
         "postcss-loader": "^3.0.0",
         "postcss-nested": "^3.0.0",
         "postcss-scss": "^2.0.0",
-        "react": "^15.5.4",
+        "rimraf": "^2.6.2",
         "shelljs": "^0.5.3",
-        "shx": "^0.1.2",
         "style-loader": "^0.23.0",
         "targetprocess-mashup-manifest-loader": "github:targetprocess/targetprocess-mashup-manifest-loader",
         "targetprocess-mashup-webpack-plugin": "targetprocess/targetprocess-mashup-webpack-plugin",
@@ -54,18 +54,12 @@
         "tslint": "^5.11.0",
         "tslint-eslint-rules": "^5.4.0",
         "tslint-react": "^3.6.0",
-        "tsml": "^1.0.1",
         "typescript": "^3.0.3",
-        "underscore": "^1.8.3",
         "underscore-template-loader": "^0.5.1",
         "webpack": "^3.12.0",
-        "webpack-dev-server": "^2.11.3"
+        "webpack-dev-server": "^2.11.3",
+        "webpack-merge": "^4.1.4"
     },
-    "contributors": [
-        "Aliaksei Shytkin <shitkin@targetprocess.com>",
-        "Sergey Mostovoy <mostovoy@targetprocess.com>",
-        "Vladimir Tikhonov <tikhonov@targetprocess.com>"
-    ],
     "jest": {
         "testRegex": "\\.spec\\.ts$",
         "transform": {

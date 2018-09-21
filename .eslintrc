@@ -1,21 +1,13 @@
 {
     "env": {
-        "browser": true,
-        "es6": true,
         "commonjs": true,
         "node": true
     },
     "extends": ["eslint:recommended"],
     "parser": "babel-eslint",
-    "parserOptions": {
-        "sourceType": "module"
-    },
     "plugins": [
         "babel"
     ],
-    "globals": {
-        "DEV_MODE": true
-    },
     "rules": {
         "accessor-pairs": "error",
         "array-bracket-spacing": [
@@ -227,7 +219,7 @@
         "object-curly-newline": "off",
         "object-curly-spacing": [
             "error",
-            "never"
+            "always"
         ],
         "object-property-newline": [
             "error",

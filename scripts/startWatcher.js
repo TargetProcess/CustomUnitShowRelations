@@ -9,4 +9,4 @@ if (!mashupsPath) {
 const buildPath = path.join(mashupsPath, shell.env.npm_package_name);
 
 shell.rm('-rf', buildPath);
-shell.exec(`cross-env NODE_ENV=development webpack --config webpack/development.config.js --watch --output-path ${buildPath}`);
+shell.exec(`NODE_ENV=development webpack --config webpack/development.config.js --watch --output-path ${buildPath}`);
