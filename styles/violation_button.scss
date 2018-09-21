@@ -1,0 +1,17 @@
+.tau-board-header__control--relations {
+    margin-left: 10px;
+
+    .tau-violations-btn {
+        display: flex;
+        align-items: center;
+
+        &:not(.tau-checked) {
+            background: linear-gradient(to bottom,#fffbdf,#fdf4b4);
+            border-color: #d9d1a2;
+
+            &:hover {
+                background: linear-gradient(to bottom,#fffbdf,#f2e7a6);
+            }
+        }
+    }
+}

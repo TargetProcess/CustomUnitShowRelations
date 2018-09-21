@@ -5,6 +5,8 @@ import ViewMode from 'src/view_mode';
 import ViolationsButton from 'src/violations_focus/ui/violations_button';
 import * as _ from 'underscore';
 
+import 'styles/violation_button.scss';
+
 const WRAPPER_CLASS = 'tau-board-header__control--relations';
 const SVG_FOCUS_ACTIVE_CLASS = 'focus-active';
 

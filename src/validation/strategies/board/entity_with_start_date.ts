@@ -41,7 +41,7 @@ export default class EntityWithStartDate extends ValidationStrategy<IBoard> {
             return Promise.resolve();
         }
 
-        this.loadingPromise = load<IEntityWithStartDate[]>(this.entityName + 's', { where: `Id in(${entityIds.join(',')})` })
+        this.loadingPromise = load<IEntityWithStartDate[]>(this.entityName + 's', { where: `Id in(${entityIds.join(',')})`, take: 100 })
             .then((entities) => {
                 this.loadedEntities = entities;
             });

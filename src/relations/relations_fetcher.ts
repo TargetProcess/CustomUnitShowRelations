@@ -167,7 +167,8 @@ export default class RelationsFetcher {
 
         const rawRelations = await load<IRawRelation[]>('relations', {
             where: `Master.Id in (${entityIds.join(',')})`,
-            include: '[Slave[Id],Master[Id],RelationType[Name]]'
+            include: '[Slave[Id],Master[Id],RelationType[Name]]',
+            take: 500
         });
         const relations = rawRelations.map(processRawRelation);
         relations.forEach((newRelation) => {
