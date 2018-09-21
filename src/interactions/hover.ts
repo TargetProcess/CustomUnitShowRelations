@@ -47,8 +47,8 @@ export default class Hover {
         }
 
         const $svg = this.application.getRenderingBackend().getSvg();
-        $svg.on('mouseenter', '.line', (evt) => this.hoverArrowById(evt.target.dataset.arrowId!));
-        $svg.on('mouseleave', '.line', () => this.unhoverArrow());
+        $svg.on('mouseenter', '.helperLine', (evt) => this.hoverArrowById(evt.target.dataset.arrowId!));
+        $svg.on('mouseleave', '.helperLine', () => this.unhoverArrow());
         return {};
     }
 }

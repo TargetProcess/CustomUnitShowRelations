@@ -111,7 +111,7 @@ export default class Renderer {
         line.setAttribute('marker-start', `url(#${styles.getRelationTypeMarkerStartId(relation.relationType, hasViolations)})`);
         line.setAttribute('marker-end', `url(#${styles.getRelationTypeMarkerEndId(relation.relationType, hasViolations)})`);
 
-        return [line, helperLine];
+        return [helperLine, line];
     }
 
     private syncArrowsWithApplication() {

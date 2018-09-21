@@ -46,7 +46,8 @@ export default class Selection {
             return {};
         }
 
-        const handleLineClick = (evt: JQuery.Event<HTMLElement, null>) => {
+        const $svg = this.application.getRenderingBackend().getSvg();
+        $svg.on('mousedown', '.helperLine', (evt) => {
             const { arrows, selectedArrows } = this.application.getState();
 
             const clickedArrowId = evt.target.dataset.arrowId;
@@ -59,11 +60,7 @@ export default class Selection {
             this.application.setState({ selectedArrows: newSelectedArrows });
 
             return false;
-        };
-
-        const $svg = this.application.getRenderingBackend().getSvg();
-        $svg.on('mousedown', '.line', handleLineClick);
-        $svg.on('mousedown', '.helperLine', handleLineClick);
+        });
 
         this.getGrid().on('mousedown.highlights', ({ target }) => {
             if ($(target).parents().hasClass('i-role-card')) {
