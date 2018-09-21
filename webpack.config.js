@@ -15,7 +15,7 @@ const isProductionBuild = process.env.NODE_ENV === 'production';
 const entries = () => ({
     entry: {
         // produce system configs from JSON file
-        manifestData: 'targetprocess-mashup-manifest-loader!./assets/manifest.json',
+        manifestData: 'targetprocess-mashup-manifest-loader!./manifest.json',
         // main entry point
         index: path.resolve(SOURCE_PATH, 'index.ts')
     }
@@ -83,24 +83,12 @@ const scssLoader = () => ({
                         options: {
                             parser: 'postcss-scss',
                             plugins: [
+                                require('cssnano')(),
                                 require('postcss-nested'),
                                 require('autoprefixer')({ browsers: ['last 2 version'] })
                             ]
                         }
                     }
-                ]
-            }
-        ]
-    }
-});
-
-const templateLoader = () => ({
-    module: {
-        rules: [
-            {
-                test: /\.template$/,
-                use: [
-                    { loader: 'underscore-template-loader' }
                 ]
             }
         ]
@@ -125,6 +113,7 @@ const externals = () => ({
     externals: [
         'react',
         'react-dom',
+        'react-dom/server',
         { jquery: 'jQuery' },
         { underscore: 'Underscore' },
         'tau-intl',
@@ -141,15 +130,7 @@ const minification = () => {
 
     return {
         plugins: [
-            new webpack.optimize.UglifyJsPlugin({
-                compress: {
-                    properties: false,
-                    warnings: false
-                },
-                output: {
-                    keep_quoted_props: true // eslint-disable-line camelcase
-                }
-            })
+            new webpack.optimize.UglifyJsPlugin()
         ]
     };
 };
@@ -162,7 +143,6 @@ module.exports = merge(
     devServer(),
     typescriptLoader(),
     scssLoader(),
-    templateLoader(),
     plugins(),
     externals(),
     minification()

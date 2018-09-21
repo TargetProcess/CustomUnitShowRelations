@@ -1,11 +1,11 @@
 import classnames from 'libs/classNames';
 import Application, { IApplicationState } from 'src/application';
 import { Arrow } from 'src/arrows';
+import * as styles from 'src/rendering/styles';
+import { createSvgFromTemplate } from 'src/rendering/svg';
 import { generateBezierCoords } from 'src/rendering/utils';
 import { IIntersection } from 'src/utils/intersection';
 import { isBoardConfigChanged } from 'src/utils/state';
-import * as styles from 'src/utils/styles';
-import { createSvgFromTemplate } from 'src/utils/svg';
 import ViewMode from 'src/view_mode';
 import * as _ from 'underscore';
 

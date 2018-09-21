@@ -11,7 +11,7 @@
     "scripts": {
         "start": "node scripts/startWatcher.js",
         "start:server": "NODE_ENV=development webpack-dev-server",
-        "build": "npm run clean:dist && NODE_ENV=production webpack",
+        "build": "npm run clean:dist && NODE_ENV=production webpack --progress",
         "build:development": "npm run clean:development && NODE_ENV=development webpack --output-path build/development",
         "lint": "npm run lint:eslint && npm run lint:tslint",
         "lint:eslint": "eslint \"**/*.{js,jsx}\"",
@@ -38,6 +38,7 @@
         "babel-preset-env": "^1.7.0",
         "combine-assets-plugin": "targetprocess/combine-assets-plugin",
         "css-loader": "^0.28.11",
+        "cssnano": "^4.1.0",
         "eslint": "^5.4.0",
         "eslint-plugin-babel": "^5.1.0",
         "jest": "^23.5.0",
@@ -55,7 +56,6 @@
         "tslint-eslint-rules": "^5.4.0",
         "tslint-react": "^3.6.0",
         "typescript": "^3.0.3",
-        "underscore-template-loader": "^0.5.1",
         "webpack": "^3.12.0",
         "webpack-dev-server": "^2.11.3",
         "webpack-merge": "^4.1.4"
