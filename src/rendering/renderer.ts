@@ -32,17 +32,22 @@ function createLine(arrow: Arrow, options: ICreateLineOptions) {
 }
 
 export default class Renderer {
+    public static register(application: Application) {
+        const renderer = new Renderer(application);
+        application.registerReducer(renderer.uiReducer.bind(renderer));
+        application.registerReducer(renderer.updateArrowLinesReducer.bind(renderer));
+        application.registerReducer(renderer.handleUiChangesReducer.bind(renderer));
+        application.registerReducer(renderer.handleTimelineOffsetChangedReducer.bind(renderer));
+
+        return renderer;
+    }
+
     private $svg: JQuery | null = null;
     private arrowLines = new Map<Arrow, SVGPathElement[]>();
     private application: Application;
 
     constructor(application: Application) {
         this.application = application;
-
-        this.application.registerReducer(this.uiReducer.bind(this));
-        this.application.registerReducer(this.updateArrowLinesReducer.bind(this));
-        this.application.registerReducer(this.handleUiChangesReducer.bind(this));
-        this.application.registerReducer(this.handleTimelineOffsetChangedReducer.bind(this));
     }
 
     public updateLinesForAllArrows() {

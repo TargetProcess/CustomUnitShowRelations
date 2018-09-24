@@ -73,6 +73,13 @@ const processRawRelation = (item: IRawRelation): IRelation => ({
 });
 
 export default class RelationsFetcher {
+    public static register(application: Application) {
+        const relationsFetcher = new RelationsFetcher(application);
+        application.registerReducer(relationsFetcher.loadRelationsOnCardChangesReducer.bind(relationsFetcher));
+
+        return relationsFetcher;
+    }
+
     private application: Application;
     private relationsByMasterIdCache = new Map<number, IRelation[]>();
     private store: IStore | null = null;
@@ -80,8 +87,6 @@ export default class RelationsFetcher {
     constructor(application: Application) {
         this.application = application;
         this.listenForStoreChanges();
-
-        this.application.registerReducer(this.loadRelationsOnCardChangesReducer.bind(this));
     }
 
     private listenForStoreChanges() {

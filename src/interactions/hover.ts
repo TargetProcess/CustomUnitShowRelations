@@ -3,12 +3,17 @@ import { Arrow } from 'src/arrows';
 import { isBoardConfigChanged } from 'src/utils/state';
 
 export default class Hover {
+    public static register(application: Application) {
+        const hover = new Hover(application);
+        application.registerReducer(hover.registerHoverListenersReducer.bind(hover));
+
+        return hover;
+    }
+
     private application: Application;
 
     public constructor(application: Application) {
         this.application = application;
-
-        this.application.registerReducer(this.registerHoverListenersReducer.bind(this));
     }
 
     private hoverArrowById(arrowId: string) {

@@ -71,17 +71,17 @@ export default class Application {
     private reducers: Reducer[] = [];
 
     constructor() {
-        this.relationsFetcher = new RelationsFetcher(this);
-        this.violationFocus = new ViolationFocus(this);
-        this.actionMenu = new ActionMenu(this);
-        this.settings = new Settings(this);
-        this.arrows = new Arrows(this);
-        this.cards = new Cards(this);
-        this.renderer = new Renderer(this);
-        this.arrowsHighlighter = new ArrowsHighlighter(this);
-        this.cardHighlighter = new CardHighlighter(this);
-        this.hover = new Hover(this);
-        this.selection = new Selection(this);
+        this.relationsFetcher = RelationsFetcher.register(this);
+        this.violationFocus = ViolationFocus.register(this);
+        this.actionMenu = ActionMenu.register(this);
+        this.settings = Settings.register(this);
+        this.arrows = Arrows.register(this);
+        this.cards = Cards.register(this);
+        this.renderer = Renderer.register(this);
+        this.arrowsHighlighter = ArrowsHighlighter.register(this);
+        this.cardHighlighter = CardHighlighter.register(this);
+        this.hover = Hover.register(this);
+        this.selection = Selection.register(this);
     }
 
     public getState() {

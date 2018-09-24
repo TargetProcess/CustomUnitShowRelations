@@ -7,12 +7,17 @@ const HIGHLIGTED_SVG_CLASS = 'arrows-highlighted';
 const HIGHLIGTED_LINE_CLASS = 'line__highlighted';
 
 export default class ArrowsHighlighter {
+    public static register(application: Application) {
+        const arrowsHighlighter = new ArrowsHighlighter(application);
+        application.registerReducer(arrowsHighlighter.updateHighlightingReducer.bind(arrowsHighlighter));
+
+        return arrowsHighlighter;
+    }
+
     private application: Application;
 
     public constructor(application: Application) {
         this.application = application;
-
-        this.application.registerReducer(this.updateHighlightingReducer.bind(this));
     }
 
     private enableHighlighting() {

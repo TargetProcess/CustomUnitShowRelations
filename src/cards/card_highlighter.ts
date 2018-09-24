@@ -8,12 +8,17 @@ const HIGHLIGHTED_GRID_CLASS = 'mashupCustomUnitShowRelations';
 const HIGHLIGHTED_CARD_CLASS = 'mashupCustomUnitShowRelations__card_highlighted';
 
 export default class CardHighlighter {
+    public static register(application: Application) {
+        const cardHighlighter = new CardHighlighter(application);
+        application.registerReducer(cardHighlighter.updateHighlightingReducer.bind(cardHighlighter));
+
+        return cardHighlighter;
+    }
+
     private application: Application;
 
     public constructor(application: Application) {
         this.application = application;
-
-        this.application.registerReducer(this.updateHighlightingReducer.bind(this));
     }
 
     private enableHighlighting() {

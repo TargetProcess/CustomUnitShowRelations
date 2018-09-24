@@ -11,13 +11,18 @@ const onPropsUpdated = (_ as any).Callbacks();
 actionsIntegration.addControl(<LegendWrapper onPropsUpdated={onPropsUpdated} />);
 
 export default class ActionMenu {
+    public static register(application: Application) {
+        const actionMenu = new ActionMenu(application);
+        application.registerReducer(actionMenu.updateComponentOnUiChangesReducer.bind(actionMenu));
+
+        return actionMenu;
+    }
+
     private application: Application;
 
     constructor(application: Application) {
         this.application = application;
         actionsIntegration.onShow(() => this.updateUi());
-
-        this.application.registerReducer(this.updateComponentOnUiChangesReducer.bind(this));
     }
 
     public updateUi() {

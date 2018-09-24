@@ -4,12 +4,17 @@ import differenceBy from 'src/utils/difference_by';
 import * as _ from 'underscore';
 
 export default class Arrows {
+    public static register(application: Application) {
+        const arrows = new Arrows(application);
+        application.registerReducer(arrows.updateArrowsOnCardsOrRelationsChangedReducer.bind(arrows));
+
+        return arrows;
+    }
+
     private application: Application;
 
     public constructor(application: Application) {
         this.application = application;
-
-        this.application.registerReducer(this.updateArrowsOnCardsOrRelationsChangedReducer.bind(this));
     }
 
     private async updateArrowsOnCardsOrRelationsChangedReducer(changes: Readonly<Partial<IApplicationState>>) {

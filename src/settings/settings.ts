@@ -12,15 +12,20 @@ interface IStorageData {
 const REST_STORAGE_GROUP_NAME = 'showRelations';
 
 export default class Settings {
+    public static register(application: Application) {
+        const settings = new Settings(application);
+        application.registerReducer(settings.loadBoardSettingsOnBoardChangedReducer.bind(settings));
+        application.registerReducer(settings.saveSettingsOnChangeReducer.bind(settings));
+
+        return settings;
+    }
+
     private application: Application;
     private restStorage = new RestStorage();
     private persistApplicationSettingsThrottled = _.throttle(this.persistApplicationSettings.bind(this), 1000, { leading: false });
 
     public constructor(application: Application) {
         this.application = application;
-
-        this.application.registerReducer(this.loadBoardSettingsOnBoardChangedReducer.bind(this));
-        this.application.registerReducer(this.saveSettingsOnChangeReducer.bind(this));
     }
 
     private async persistApplicationSettings() {

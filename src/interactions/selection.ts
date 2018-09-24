@@ -8,15 +8,20 @@ import * as _ from 'underscore';
 const SELECTED_LINE_CLASS = 'line__selected';
 
 export default class Selection {
+    public static register(application: Application) {
+        const selection = new Selection(application);
+        application.registerReducer(selection.registerClickListenersReducer.bind(selection));
+        application.registerReducer(selection.clearSelectedArrowsReducer.bind(selection));
+        application.registerReducer(selection.highlightSelectedArrowsReducer.bind(selection));
+        application.registerReducer(selection.unhighlightExtraArrowsReducer.bind(selection));
+
+        return selection;
+    }
+
     private application: Application;
 
     public constructor(application: Application) {
         this.application = application;
-
-        this.application.registerReducer(this.registerClickListenersReducer.bind(this));
-        this.application.registerReducer(this.clearSelectedArrowsReducer.bind(this));
-        this.application.registerReducer(this.highlightSelectedArrowsReducer.bind(this));
-        this.application.registerReducer(this.unhighlightExtraArrowsReducer.bind(this));
     }
 
     private getGrid() {

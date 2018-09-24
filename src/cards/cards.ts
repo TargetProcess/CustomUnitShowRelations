@@ -5,12 +5,17 @@ import { isBoardConfigChanged } from 'src/utils/state';
 import * as _ from 'underscore';
 
 export default class Cards {
+    public static register(application: Application) {
+        const cards = new Cards(application);
+        application.registerReducer(cards.updateCardsOnBoardChangedReducer.bind(cards));
+
+        return cards;
+    }
+
     private application: Application;
 
     public constructor(application: Application) {
         this.application = application;
-
-        this.application.registerReducer(this.updateCardsOnBoardChangedReducer.bind(this));
     }
 
     public updateCards() {

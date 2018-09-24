@@ -12,17 +12,22 @@ const WRAPPER_CLASS = 'tau-board-header__control--relations';
 const SVG_FOCUS_ACTIVE_CLASS = 'focus-active';
 
 export default class ViolationFocus {
+    public static register(application: Application) {
+        const violationFocus = new ViolationFocus(application);
+        application.registerReducer(violationFocus.updateUIReducer.bind(violationFocus));
+        application.registerReducer(violationFocus.clearFocusReducer.bind(violationFocus));
+        application.registerReducer(violationFocus.disableFocusOnAllViolatedLinesHiddenReducer.bind(violationFocus));
+        application.registerReducer(violationFocus.updateSvgReducer.bind(violationFocus));
+
+        return violationFocus;
+    }
+
     private application: Application;
     private buttonWrapper: HTMLElement | null = null;
 
     public constructor(application: Application) {
         this.application = application;
         this.listenForBoardUiChanges();
-
-        this.application.registerReducer(this.updateUIReducer.bind(this));
-        this.application.registerReducer(this.clearFocusReducer.bind(this));
-        this.application.registerReducer(this.disableFocusOnAllViolatedLinesHiddenReducer.bind(this));
-        this.application.registerReducer(this.updateSvgReducer.bind(this));
     }
 
     private updateUi() {
