@@ -3,6 +3,7 @@ import * as ReactDom from 'react-dom';
 import Application, { IApplicationState } from 'src/application';
 import ViewMode from 'src/view_mode';
 import ViolationsButton from 'src/violations_focus/ui/violations_button';
+import configurator from 'tau/configurator';
 import * as _ from 'underscore';
 
 import 'styles/violation_button.scss';
@@ -12,10 +13,11 @@ const SVG_FOCUS_ACTIVE_CLASS = 'focus-active';
 
 export default class ViolationFocus {
     private application: Application;
-    private $buttonWrapper: JQuery | null = null;
+    private buttonWrapper: HTMLElement | null = null;
 
     public constructor(application: Application) {
         this.application = application;
+        this.listenForBoardUiChanges();
 
         this.application.registerReducer(this.updateUIReducer.bind(this));
         this.application.registerReducer(this.clearFocusReducer.bind(this));
@@ -35,7 +37,11 @@ export default class ViolationFocus {
         if (!$wrapper) {
             return;
         }
-        this.$buttonWrapper = $wrapper;
+        const newWrapper = $wrapper.get(0);
+        if (!!this.buttonWrapper && this.buttonWrapper !== newWrapper) {
+            this.cleanup();
+        }
+        this.buttonWrapper = newWrapper;
 
         const arrowsWithViolations = arrows.filter((arrow) => arrow.isViolated() && visibleRelationTypes.has(arrow.getRelation().relationType));
         if (arrowsWithViolations.length === 0) {
@@ -55,14 +61,15 @@ export default class ViolationFocus {
                 isActive={isFocusActive}
                 onClick={onClick}
             />,
-            this.$buttonWrapper.get(0)
+            this.buttonWrapper
         );
     }
 
     private cleanup() {
-        if (this.$buttonWrapper) {
-            this.$buttonWrapper.remove();
-            this.$buttonWrapper = null;
+        if (this.buttonWrapper) {
+            ReactDom.unmountComponentAtNode(this.buttonWrapper);
+            this.buttonWrapper.remove();
+            this.buttonWrapper = null;
         }
     }
 
@@ -87,6 +94,29 @@ export default class ViolationFocus {
             $('.tau-board-header__control--mashup'),
             $('.tau-board-header__control--actions')
         ].find(($element) => $element.length !== 0);
+    }
+
+    private listenForBoardUiChanges() {
+        const registry = configurator.getBusRegistry();
+        const listener = this.updateUi.bind(this);
+        const targetBusName = 'board.toolbar';
+        const targetEventName = 'afterRender';
+
+        registry.on('create', (_e: any, { bus }: any) => {
+            if (bus.name === targetBusName) {
+                bus.on(targetEventName, listener);
+            }
+        });
+
+        registry.on('destroy', (_e: any, { bus }: any) => {
+            if (bus.name === targetBusName) {
+                bus.removeListener(targetEventName, listener);
+            }
+        });
+
+        registry.getByName(targetBusName).done((bus: any) => {
+            bus.on(targetEventName, listener);
+        });
     }
 
     private async updateUIReducer(changes: Readonly<Partial<IApplicationState>>) {

@@ -3,7 +3,7 @@ import Application from 'src/application';
 import ValidationStrategy from 'src/validation/strategies/strategy';
 import * as validationStrategyBuilder from 'src/validation/strategy_builder';
 import ViewMode from 'src/view_mode';
-import { onBoardCreate, onListCreate, onTimelineCreate } from 'tau/api/board/v1';
+import { onBoardCreate, onDetailsCreate, onListCreate, onTimelineCreate } from 'tau/api/board/v1';
 import * as _ from 'underscore';
 
 import 'styles/index.scss';
@@ -46,6 +46,10 @@ async function updateApplicationConfig(validationStrategy: ValidationStrategy<an
 }
 
 const initialize = () => {
+    onDetailsCreate(() => {
+        initializedApplication && initializedApplication.disable();
+    });
+
     onBoardCreate(async (boardModel) => {
         const application = await updateApplicationConfig(validationStrategyBuilder.buildStrategyForBoard(boardModel.board), boardModel.board.boardSettings);
 
