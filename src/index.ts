@@ -53,23 +53,32 @@ const initialize = () => {
     onBoardCreate(async (boardModel) => {
         const application = await updateApplicationConfig(validationStrategyBuilder.buildStrategyForBoard(boardModel.board), boardModel.board.boardSettings);
 
-        boardModel.onCellsUpdate(() => {
+        // When you first opens board, callbacks like onColumnResize are triggered after the actual event.
+        // But if you change board configuration, TP begins to trigger them BEFORE the actual event.
+        // We need to throttle everything just to normalize that behaviour ({ leading: false } was added to make throttle async).
+        const throttledUpdateCards = _.throttle(() => {
             application.updateCards();
+        }, 10, { leading: false });
+
+        const throttleUpdateCardsAndArrows = _.throttle(() => {
+            application.updateCards();
+            application.updateArrowPositions();
+        }, 10, { leading: false });
+
+        boardModel.onCellsUpdate(() => {
+            throttledUpdateCards();
         });
         boardModel.onCardDragging(() => {
-            application.updateCards();
-            application.updateArrowPositions();
+            throttleUpdateCardsAndArrows();
         });
         boardModel.onColumnResize(() => {
-            application.updateCards();
-            application.updateArrowPositions();
+            throttleUpdateCardsAndArrows();
         });
         boardModel.onZoomLevelChanged(() => {
-            application.updateCards();
+            throttledUpdateCards();
         });
         boardModel.onExpandCollapseAxis(() => {
-            application.updateCards();
-            application.updateArrowPositions();
+            throttleUpdateCardsAndArrows();
         });
     });
 
