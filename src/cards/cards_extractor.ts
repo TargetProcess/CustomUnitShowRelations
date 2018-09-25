@@ -1,33 +1,36 @@
-import * as $ from 'jquery';
+import Application from 'src/application';
 import Card from 'src/cards/card';
 import CardOnTimeline, { CardType } from 'src/cards/card_on_timeline';
 import ViewMode from 'src/view_mode';
 import * as _ from 'underscore';
 
-export default function extractCardsFromUi(viewMode: ViewMode) {
-    if (viewMode === ViewMode.Timeline) {
-        return extractCardsFromTimeline();
+export default function extractCardsFromUi(application: Application) {
+    if (application.getState().viewMode === ViewMode.Timeline) {
+        return extractCardsFromTimeline(application);
     }
 
-    return extractCardsFromBoardOrList();
+    return extractCardsFromBoardOrList(application);
 }
 
-function extractCardsFromBoardOrList() {
-    return $('.i-role-grid .i-role-card, .tau-sortable__placeholder').toArray()
+function extractCardsFromBoardOrList(application: Application) {
+    return application.getRenderingBackend().getGrid().find('.i-role-card, .tau-sortable__placeholder')
+        .toArray()
         .map((element) => new Card(element))
         .filter((card) => !Number.isNaN(card.getEntityId()));
 }
 
-function extractCardsFromTimeline() {
+function extractCardsFromTimeline(application: Application) {
+    const $grid = application.getRenderingBackend().getGrid();
+
     const groupedCards = _.groupBy<CardOnTimeline>(
         [
-            ...$('.i-role-grid .tau-backlog-body .i-role-card, .tau-backlog-body .tau-sortable__placeholder')
+            ...$grid.find('.tau-backlog-body .i-role-card, .tau-backlog-body .tau-sortable__placeholder')
                 .toArray()
                 .map((cardElement) => new CardOnTimeline(cardElement, cardElement, CardType.Backlog)),
-            ...$('.i-role-grid .tau-card-planner:not(.tau-section-invisible) .i-role-card, .tau-card-planner:not(.tau-section-invisible) .tau-sortable__placeholder')
+            ...$grid.find('.tau-card-planner:not(.tau-section-invisible) .i-role-card, .tau-card-planner:not(.tau-section-invisible) .tau-sortable__placeholder')
                 .toArray()
                 .map((cardElement) => new CardOnTimeline(cardElement, cardElement.parentElement!, CardType.Planned)),
-            ...$('.i-role-grid .tau-timeline-card > .tau-card-holder:not(.tau-section-invisible) .i-role-card')
+            ...$grid.find('.tau-timeline-card > .tau-card-holder:not(.tau-section-invisible) .i-role-card')
                 .toArray()
                 .map((cardElement) => new CardOnTimeline(cardElement, cardElement.parentElement!, CardType.Actual))
         ],

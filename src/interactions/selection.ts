@@ -24,10 +24,6 @@ export default class Selection {
         this.application = application;
     }
 
-    private getGrid() {
-        return $('.i-role-grid');
-    }
-
     private selectArrow(arrow: Arrow) {
         this.application.getRenderingBackend().getSvg().find(`.line[data-arrow-id="${arrow.getId()}"]`).each((_index, lineElement) => {
             lineElement.classList.add(SELECTED_LINE_CLASS);
@@ -51,7 +47,8 @@ export default class Selection {
             return {};
         }
 
-        const $svg = this.application.getRenderingBackend().getSvg();
+        const renderingBackend = this.application.getRenderingBackend();
+        const $svg = renderingBackend.getSvg();
         $svg.on('mousedown', '.helperLine', (evt) => {
             const { arrows, selectedArrows } = this.application.getState();
 
@@ -67,7 +64,8 @@ export default class Selection {
             return false;
         });
 
-        this.getGrid().on('mousedown.highlights', ({ target }) => {
+        const $grid = renderingBackend.getGrid();
+        $grid.on('mousedown.highlights', ({ target }) => {
             if ($(target).parents().hasClass('i-role-card')) {
                 return;
             }

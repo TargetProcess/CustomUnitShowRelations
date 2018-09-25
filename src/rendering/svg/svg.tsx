@@ -45,6 +45,7 @@ export default class Svg extends React.PureComponent<ISvgProps> {
     private renderStartMarker(relationConfig: IRelationConfig, hasViolations: boolean) {
         return (
             <marker
+                className="line-marker line-marker__start"
                 viewBox="0 0 10 10"
                 id={styles.getRelationTypeMarkerStartId(relationConfig.type, hasViolations)}
                 key={`start-${relationConfig.type}-${hasViolations}`}
@@ -67,6 +68,7 @@ export default class Svg extends React.PureComponent<ISvgProps> {
     private renderEndMarker(relationConfig: IRelationConfig, hasViolations: boolean) {
         return (
             <marker
+                className="line-marker line-marker__end"
                 viewBox="0 0 10 10"
                 id={styles.getRelationTypeMarkerEndId(relationConfig.type, hasViolations)}
                 key={`end-${relationConfig.type}-${hasViolations}`}

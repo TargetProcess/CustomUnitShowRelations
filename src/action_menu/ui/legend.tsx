@@ -4,6 +4,7 @@ import LegendRelations from 'src/action_menu/ui/legend_relations';
 import { RelationType } from 'src/relations';
 import * as intl from 'tau-intl';
 
+const LABEL_TEXT = intl.formatMessage('Relations');
 const BUTTON_TITLE_EXPANDED = intl.formatMessage('Click to hide relations');
 const BUTTON_TITLE_COLLAPSED = intl.formatMessage('Click to show relations');
 const BUTTON_TEXT_EXPANDED = intl.formatMessage('Hide');
@@ -23,40 +24,39 @@ export default class Legend extends React.Component<ILegendProps> {
     }
 
     public render() {
-        const { isExpanded } = this.props;
+        const { isExpanded, isVisible } = this.props;
 
-        const classConfig = {
+        if (!isVisible) {
+            return null;
+        }
+
+        const buttonClasses = classnames({
             'tau-btn': true,
             'i-role-show-relations': true,
             'i-role-board-tooltip': true,
             'tau-checked': isExpanded
-        };
+        });
 
-        const labelClassConfig = {
+        const labelClasses = classnames({
             'board-actions__item__text': true
-        };
-
-        const buttonCssClass = classnames(classConfig);
-        const labelCssClass = classnames(labelClassConfig);
+        });
 
         const buttonTitle = isExpanded ? BUTTON_TITLE_EXPANDED : BUTTON_TITLE_COLLAPSED;
         const buttonText = isExpanded ? BUTTON_TEXT_EXPANDED : BUTTON_TEXT_COLLAPSED;
 
-        if (!this.props.isVisible) {
-            return null;
-        }
-
         return (
             <div className="board-actions__group board-actions__group--controls board-actions__group--visual-encoding i-role-board-actions-group">
                 <div className="board-actions__item board-actions__item--two-column action-show-relations">
-                    <span className={labelCssClass}>Relations</span>
+                    <span className={labelClasses}>{LABEL_TEXT}</span>
 
                     <div className="board-actions__item__control">
                         <button
+                            // We need to completely re-render button as workaround for the issue with tooltip cache
+                            key={`btn-is-expanded-${isExpanded}`}
                             onClick={this.onClick}
                             type="button"
-                            className={buttonCssClass}
-                            title={buttonTitle}
+                            className={buttonClasses}
+                            data-title={buttonTitle}
                         >
                             <span className="tau-btn__text">{buttonText}</span>
                         </button>

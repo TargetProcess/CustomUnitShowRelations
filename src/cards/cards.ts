@@ -20,7 +20,7 @@ export default class Cards {
 
     public updateCards() {
         const currentCards = this.application.getState().cards;
-        const extractedCards = extractCardsFromUi(this.application.getState().viewMode);
+        const extractedCards = extractCardsFromUi(this.application);
 
         const newCards = differenceBy(extractedCards, currentCards, (c1, c2) => c1.equals(c2));
         const removedCards = differenceBy(currentCards, extractedCards, (c1, c2) => c1.equals(c2));
@@ -42,6 +42,6 @@ export default class Cards {
             return {};
         }
 
-        return { cards: extractCardsFromUi(this.application.getState().viewMode) };
+        return { cards: extractCardsFromUi(this.application) };
     }
 }

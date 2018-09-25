@@ -16,7 +16,8 @@ export default abstract class RenderingBackend {
     }
 
     public getGrid() {
-        return $('.i-role-grid');
+        // NOTE: beware of grids inside entity views (such as sprint list in Release and so on)
+        return $('.tau-board .i-role-grid');
     }
 
     public getSvg() {
