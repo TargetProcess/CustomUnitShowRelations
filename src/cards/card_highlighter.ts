@@ -43,18 +43,7 @@ export default class CardHighlighter {
     }
 
     private getCardsToHighlight() {
-        return _.flatten(this.getActiveArrows().map((arrow) => [arrow.getMasterCard(), arrow.getSlaveCard()])) as Card[];
-    }
-
-    private getActiveArrows() {
-        const { arrows, visibleRelationTypes } = this.application.getState();
-
-        const highlightedArrows = getHighlightedArrows(this.application.getState());
-        if (highlightedArrows.length !== 0) {
-            return highlightedArrows;
-        }
-
-        return arrows.filter((arrow) => visibleRelationTypes.has(arrow.getRelation().relationType));
+        return _.flatten(getHighlightedArrows(this.application.getState()).map((arrow) => [arrow.getMasterCard(), arrow.getSlaveCard()])) as Card[];
     }
 
     private async updateHighlightingReducer(changes: Readonly<Partial<IApplicationState>>) {
@@ -66,7 +55,7 @@ export default class CardHighlighter {
         const cardsToHighlight = this.getCardsToHighlight();
         this.unhighlightExtraCards(cardsToHighlight);
 
-        if (!this.application.getState().isUiActive) {
+        if (!this.application.getState().isUiActive || cardsToHighlight.length === 0) {
             this.disableHighlighting();
             return {};
         }
