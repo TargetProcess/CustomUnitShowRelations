@@ -12,7 +12,7 @@ export default abstract class RenderingBackend {
     }
 
     public isApplicableToCurrentUi() {
-        return this.getGrid().closest('html').length !== 0;
+        return this.getGrid().closest('html').length !== 0 && this.getTable().closest('html').length !== 0;
     }
 
     public getGrid() {

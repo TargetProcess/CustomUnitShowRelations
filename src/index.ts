@@ -33,6 +33,8 @@ export interface IBoardSettings {
     };
 }
 
+const FRAME_DURATION_60_FPS = 1000 / 60;
+
 let initializedApplication: Application | null = null;
 
 async function updateApplicationConfig(validationStrategy: ValidationStrategy<any>, boardSettings: IBoardSettings) {
@@ -58,12 +60,12 @@ const initialize = () => {
         // We need to throttle everything just to normalize that behaviour ({ leading: false } was added to make throttle async).
         const throttledUpdateCards = _.throttle(() => {
             application.updateCards();
-        }, 10, { leading: false });
+        }, FRAME_DURATION_60_FPS, { leading: false });
 
         const throttleUpdateCardsAndArrows = _.throttle(() => {
             application.updateCards();
             application.updateArrowPositions();
-        }, 10, { leading: false });
+        }, FRAME_DURATION_60_FPS, { leading: false });
 
         boardModel.onCellsUpdate(() => {
             throttledUpdateCards();
@@ -91,15 +93,20 @@ const initialize = () => {
             const throttledUpdateCardsAndArrowPosition = _.throttle(() => {
                 application.updateCards();
                 application.updateArrowPositions();
-            }, 30);
+            }, FRAME_DURATION_60_FPS, { leading: false });
 
             const throttledUpdateTimelineOffset = _.throttle((newTimelineOffset: number) => {
                 application.updateTimelineOffset(newTimelineOffset);
-            }, 30);
+            }, FRAME_DURATION_60_FPS);
 
             $('.tau-timeline-canvas').scroll((evt) => {
                 throttledUpdateTimelineOffset(evt.target.scrollTop);
             });
+
+            $('.tau-timeline-canvas').on('remove', () => {
+                // Vertical paging detection
+                throttledUpdateCardsAndArrowPosition();
+            })
 
             $(window).resize(() => {
                 application.updateArrowPositions();
