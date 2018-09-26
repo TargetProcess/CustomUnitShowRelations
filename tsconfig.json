@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+      "module": "es2015",
+      "moduleResolution": "node",
+      "baseUrl": ".",
+      "target": "es2017",
+      "sourceMap": true,
+      "jsx": "react",
+
+      "strict": true,
+      "alwaysStrict": true,
+      "noUnusedLocals": true,
+      "noUnusedParameters": true,
+      "noFallthroughCasesInSwitch": true,
+      "noImplicitReturns": true,
+      "allowUnreachableCode": false
+    },
+    "include": [
+      "src/**/*",
+      "assets/**/*",
+      "typings/**/*",
+      "test/**/*"
+    ]
+  }

@@ -1,0 +1,145 @@
+.mashupCustomUnitShowRelations {
+    .i-role-card,
+    .tau-show-more-cards-trigger {
+        opacity: 0.3;
+        transition: opacity 300ms cubic-bezier(0.4, 0.0, 0.2, 1) 200ms;
+    }
+
+    .tau-list-more .tau-list-more-inner {
+        z-index: 8;
+    }
+
+    &__card_highlighted {
+        transition: opacity 100ms cubic-bezier(0.4, 0.0, 0.2, 1) !important;
+        opacity: 1 !important;
+        z-index: 9;
+        position: relative;
+    }
+
+    &.tau-board-list-view {
+        .i-role-card {
+            opacity: 1 !important;
+            transition: none !important;
+            height: 0;
+            padding-bottom: 33px;
+            background-clip: content-box;
+        }
+
+        .tau-list-line {
+            opacity: 0.3;
+            transition: opacity 300ms cubic-bezier(0.4, 0.0, 0.2, 1) 200ms;
+            background: inherit;
+        }
+
+        .mashupCustomUnitShowRelations__card_highlighted {
+            z-index: auto !important;
+        }
+
+        .mashupCustomUnitShowRelations__card_highlighted .tau-list-line {
+            transition: opacity 100ms cubic-bezier(0.4, 0.0, 0.2, 1) !important;
+            opacity: 1 !important;
+            z-index: 9;
+            position: relative;
+        }
+    }
+
+    &__svg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 25;
+        pointer-events: none;
+        overflow: visible;
+
+        &.arrows-highlighted {
+            .line:not(.line__highlighted) {
+                transition: opacity 300ms cubic-bezier(0.4, 0.0, 0.2, 1) 200ms,
+                stroke-width 100ms cubic-bezier(0.4, 0.0, 0.2, 1);
+                opacity: 0.3;
+            }
+        }
+
+        .line-marker {
+            stroke-dasharray: 999 999; // Seems to be the only way to prevent dashes in markers in Safari
+        }
+
+        .line {
+            transition: opacity 100ms cubic-bezier(0.4, 0.0, 0.2, 1),
+            stroke-width 100ms cubic-bezier(0.4, 0.0, 0.2, 1);
+            pointer-events: none;
+            stroke-width: 1.2px;
+
+            &__violated {
+                stroke-dasharray: 4, 3;
+                stroke-width: 1.5px;
+                stroke-linecap: round;
+            }
+
+            &__selected {
+                transition: opacity 100ms cubic-bezier(0.4, 0.0, 0.2, 1),
+                stroke-width 100ms cubic-bezier(0.4, 0.0, 0.2, 1);
+                opacity: 1;
+                stroke-width: 2.2;
+            }
+        }
+
+        .helperLine {
+            transition: opacity 100ms cubic-bezier(0.4, 0.0, 0.2, 1);
+            opacity: 0;
+            pointer-events: stroke;
+            cursor: pointer;
+            stroke-width: 6px;
+
+            &:hover {
+                opacity: 0.2;
+
+                & + .line {
+                    opacity: 1;
+                    transition: opacity 100ms cubic-bezier(0.4, 0.0, 0.2, 1),
+                    stroke-width 100ms cubic-bezier(0.4, 0.0, 0.2, 1);
+                }
+            }
+        }
+
+        .helperLine__violated {
+            opacity: 0.2;
+
+            &:hover {
+                opacity: 0.3;
+            }
+        }
+
+        &.focus-active {
+            .line__violated {
+                opacity: 1;
+                transition: opacity 100ms cubic-bezier(0.4, 0.0, 0.2, 1),
+                stroke-width 100ms cubic-bezier(0.4, 0.0, 0.2, 1);
+            }
+
+            .helperLine__violated {
+                opacity: 0.3;
+
+                &:hover {
+                    opacity: 0.4;
+                }
+            }
+        }
+    }
+}
+
+.tau-board .i-role-grid .tau-board-unit_type_relations-counter-in-out {
+    cursor: pointer !important;
+}
+
+.new-feature-label .tau-board:not(.i-role-dashboard-page):not(.i-role-customReport-container) .tau-actions-btn:after {
+        font-size: 9px;
+        color: #89b923;
+        content: 'NEW';
+        position: relative;
+        top: -3px;
+        left: 2px;
+}
+
+.tau-app-main-pane.new-feature-label:after {
+    content: none;
+}
