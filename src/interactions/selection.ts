@@ -42,6 +42,18 @@ export default class Selection {
         });
     }
 
+    private getNewSelectedArrows(clickedArrowId: string, isMultiselectMode: boolean) {
+        const { arrows, selectedArrows } = this.application.getState();
+
+        const clickedArrow = arrows.find((arrow) => arrow.getId() === clickedArrowId)!;
+        const wasSelected = selectedArrows.includes(clickedArrow);
+        if (isMultiselectMode) {
+            return wasSelected ? selectedArrows.filter((arrow) => arrow !== clickedArrow) : [...selectedArrows, clickedArrow];
+        } else {
+            return wasSelected ? [] : [clickedArrow];
+        }
+    }
+
     private async registerClickListenersReducer(changes: Readonly<Partial<IApplicationState>>) {
         if (!isBoardConfigChanged(changes)) {
             return {};
@@ -50,17 +62,9 @@ export default class Selection {
         const renderingBackend = this.application.getRenderingBackend();
         const $svg = renderingBackend.getSvg();
         $svg.on('mousedown', '.helperLine', (evt) => {
-            const { arrows, selectedArrows } = this.application.getState();
-
-            const clickedArrowId = evt.target.dataset.arrowId;
-            const clickedArrow = arrows.find((arrow) => arrow.getId() === clickedArrowId)!;
-            const wasSelected = selectedArrows.includes(clickedArrow);
-            const newSelectedArrows = wasSelected ?
-                selectedArrows.filter((arrow) => arrow !== clickedArrow) :
-                [...selectedArrows, clickedArrow];
-
-            this.application.setState({ selectedArrows: newSelectedArrows });
-
+            const clickedArrowId = evt.target.dataset.arrowId!;
+            const isCtrlOrCmdPressed = evt.ctrlKey || evt.metaKey;
+            this.application.setState({ selectedArrows: this.getNewSelectedArrows(clickedArrowId, isCtrlOrCmdPressed) });
             return false;
         });
 
