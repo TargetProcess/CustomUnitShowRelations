@@ -28,7 +28,9 @@ export default function buildArrows<T extends Card = Card>(cards: T[], relations
                 }
                 amountOfArrowsForRelation++;
 
-                const isRelationViolated = validationStrategy.isRelationViolated(masterCard.getElement(), slaveCard.getElement());
+                const isRelationViolated = validationStrategy.isApplicableToRelationType(relation.relationType) &&
+                    validationStrategy.isRelationViolated(masterCard.getElement(), slaveCard.getElement());
+
                 result.push(new Arrow(
                     `${relation.id}-${amountOfArrowsForRelation}`,
                     masterCard,

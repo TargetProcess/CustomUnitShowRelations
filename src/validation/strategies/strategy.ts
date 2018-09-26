@@ -1,3 +1,5 @@
+import { RelationType } from 'src/relations';
+
 export default abstract class ValidationStrategy<T = void> {
     protected viewModel: T;
 
@@ -5,8 +7,13 @@ export default abstract class ValidationStrategy<T = void> {
         this.viewModel = viewModel;
     }
 
-    public abstract isRelationViolated(_masterElement: HTMLElement, _slaveElement: HTMLElement): boolean;
     public initialize() {
         return Promise.resolve();
     }
+
+    public isApplicableToRelationType(relationType: RelationType) {
+        return relationType === RelationType.Blocker || relationType === RelationType.Dependency;
+    }
+
+    public abstract isRelationViolated(_masterElement: HTMLElement, _slaveElement: HTMLElement): boolean;
 }
