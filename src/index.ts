@@ -106,7 +106,7 @@ const initialize = () => {
             $('.tau-timeline-canvas').on('remove', () => {
                 // Vertical paging detection
                 throttledUpdateCardsAndArrowPosition();
-            })
+            });
 
             $(window).resize(() => {
                 application.updateArrowPositions();
