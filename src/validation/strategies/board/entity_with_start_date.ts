@@ -1,5 +1,5 @@
-import { IBoard } from 'src/index';
-import { load } from 'src/utils/api';
+import { IBoardModel } from 'src/board';
+import { loadCollection } from 'src/utils/api';
 import ValidationStrategy from 'src/validation/strategies/strategy';
 import * as dateUtils from 'tau/utils/utils.date';
 
@@ -19,13 +19,13 @@ interface IEntityWithStartDate {
     StartDate: string;
 }
 
-export default class EntityWithStartDate extends ValidationStrategy<IBoard> {
+export default class EntityWithStartDate extends ValidationStrategy<IBoardModel> {
     private entityName: string;
     private axisWithEntity: 'x' | 'y';
     private loadingPromise: Promise<void> | null = null;
     private loadedEntities: IEntityWithStartDate[] = [];
 
-    public constructor(board: IBoard, entityName: string, axisWithEntity: 'x' | 'y') {
+    public constructor(board: IBoardModel, entityName: string, axisWithEntity: 'x' | 'y') {
         super(board);
         this.entityName = entityName;
         this.axisWithEntity = axisWithEntity;
@@ -41,7 +41,7 @@ export default class EntityWithStartDate extends ValidationStrategy<IBoard> {
             return Promise.resolve();
         }
 
-        this.loadingPromise = load<IEntityWithStartDate[]>(this.entityName + 's', { where: `Id in(${entityIds.join(',')})`, take: 100 })
+        this.loadingPromise = loadCollection<IEntityWithStartDate>(this.entityName + 's', { where: `Id in(${entityIds.join(',')})`, take: 100 })
             .then((entities) => {
                 this.loadedEntities = entities;
             });

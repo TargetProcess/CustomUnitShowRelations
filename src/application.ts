@@ -1,14 +1,14 @@
 import * as _isEqual from 'lodash.isequal';
 import { ActionMenu } from 'src/action_menu';
 import { Arrow, Arrows, ArrowsHighlighter } from 'src/arrows';
+import { IGenericBoardModel, ViewMode } from 'src/board';
 import { Card, CardHighlighter, Cards } from 'src/cards';
-import { IBoardSettings } from 'src/index';
+import { FeatureToggle, FeatureToggles } from 'src/feature_toggles';
 import { Hover, Selection } from 'src/interactions';
 import { IRelation, RelationsFetcher, RelationType } from 'src/relations';
 import { getBackendByViewMode, Renderer } from 'src/rendering';
 import { Settings } from 'src/settings';
-import ValidationStrategy from 'src/validation/strategies/strategy';
-import ViewMode from 'src/view_mode';
+import { buildEmptyValidationStategy, buildValidationStategy, ValidationStrategy } from 'src/validation';
 import { ViolationFocus } from 'src/violations_focus';
 import * as _ from 'underscore';
 
@@ -45,6 +45,9 @@ const EMPTY_STATE: IApplicationState = {
 };
 
 export default class Application {
+    private featureToggles: FeatureToggles;
+    private validationStrategy!: ValidationStrategy<any>;
+
     // @ts-ignore: No unused
     private relationsFetcher: RelationsFetcher;
     // @ts-ignore: No unused
@@ -65,12 +68,13 @@ export default class Application {
     private hover: Hover;
     // @ts-ignore: No unused
     private selection: Selection;
-    private validationStrategy!: ValidationStrategy;
 
     private state: Readonly<IApplicationState> = EMPTY_STATE;
     private reducers: Reducer[] = [];
 
     constructor() {
+        this.featureToggles = new FeatureToggles();
+
         this.relationsFetcher = RelationsFetcher.register(this);
         this.violationFocus = ViolationFocus.register(this);
         this.actionMenu = ActionMenu.register(this);
@@ -136,11 +140,14 @@ export default class Application {
         }
     }
 
-    public async reinitialize(validationStrategy: ValidationStrategy, boardSettings: IBoardSettings) {
+    public async reinitialize(boardModel: IGenericBoardModel) {
         await this.disable();
 
-        this.validationStrategy = validationStrategy;
-        const { settings } = boardSettings;
+        const { boardSettings: { settings } } = boardModel;
+
+        const validationIsDisabled = await this.featureToggles.get(FeatureToggle.DisableOrderChecksForRelationLines);
+        this.validationStrategy = validationIsDisabled ? buildEmptyValidationStategy() : await buildValidationStategy(settings.viewMode, boardModel);
+
         await this.setState({
             ...EMPTY_STATE,
             isOnAppropriatePage: true,

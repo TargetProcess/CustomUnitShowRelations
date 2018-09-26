@@ -1,9 +1,32 @@
-import { IBoard, IBoardAxe } from 'src/index';
+import { IBoardAxe, IBoardModel, IGenericBoardModel, ViewMode } from 'src/board';
 import EntityWithStartDate, { KNOWN_ENTITIES } from 'src/validation/strategies/board/entity_with_start_date';
 import GroupedTeamIterations from 'src/validation/strategies/board/grouped_team_iterations';
 import VoidStrategy from 'src/validation/strategies/void_strategy';
 
-export function buildStrategyForBoard(board: IBoard) {
+export async function buildValidationStategy(viewMode: ViewMode, boardModel: IGenericBoardModel) {
+    const validationStrategy = getValidationStrategyForViewMode(viewMode, boardModel);
+    await validationStrategy.initialize();
+    return validationStrategy;
+}
+
+export function buildEmptyValidationStategy() {
+    return new VoidStrategy();
+}
+
+function getValidationStrategyForViewMode(viewMode: ViewMode, boardModel: IGenericBoardModel) {
+    switch (viewMode) {
+        case ViewMode.Board:
+            return buildStrategyForBoard(boardModel as IBoardModel);
+        case ViewMode.List:
+            return buildStrategyForList();
+        case ViewMode.Timeline:
+            return buildStrategyForTimeline();
+        default:
+            throw new Error(`Cannot find validation strategy for view mode ${viewMode}`);
+    }
+}
+
+function buildStrategyForBoard(board: IBoardModel) {
     const groupedTeamIterationsStrategy = tryBuildGroupedTeamIterationsBoardStrategy(board);
     if (groupedTeamIterationsStrategy) {
         return groupedTeamIterationsStrategy;
@@ -14,18 +37,18 @@ export function buildStrategyForBoard(board: IBoard) {
         return entityWithStartDateStrategy;
     }
 
-    return new VoidStrategy();
+    return buildEmptyValidationStategy();
 }
 
-export function buildStrategyForTimeline() {
-    return new VoidStrategy();
+function buildStrategyForTimeline() {
+    return buildEmptyValidationStategy();
 }
 
-export function buildStrategyForList() {
-    return new VoidStrategy();
+function buildStrategyForList() {
+    return buildEmptyValidationStategy();
 }
 
-function tryBuildGroupedTeamIterationsBoardStrategy(board: IBoard) {
+function tryBuildGroupedTeamIterationsBoardStrategy(board: IBoardModel) {
     let axisWithGroupedTeamIterations: 'x' | 'y' | null = null;
     const hasSuitableEntity = (columnOrRows: IBoardAxe[]) => columnOrRows.some((columnOrRow) => columnOrRow.entity.type === 'teamiterationgroup');
 
@@ -41,7 +64,7 @@ function tryBuildGroupedTeamIterationsBoardStrategy(board: IBoard) {
     return new GroupedTeamIterations(board, axisWithGroupedTeamIterations);
 }
 
-function tryBuildEntityWithStartDateStrategy(board: IBoard) {
+function tryBuildEntityWithStartDateStrategy(board: IBoardModel) {
     let axisWithEntity: 'x' | 'y' | null = null;
     const hasSuitableEntity = (columnOrRows: IBoardAxe[]) => columnOrRows.some((columnOrRow) => KNOWN_ENTITIES.includes(columnOrRow.entity.type));
 
