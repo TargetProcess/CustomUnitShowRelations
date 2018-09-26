@@ -1,4 +1,4 @@
-import { IBoard } from 'src/index';
+import { IBoardModel } from 'src/board';
 import ValidationStrategy from 'src/validation/strategies/strategy';
 import * as dateUtils from 'tau/utils/utils.date';
 
@@ -9,10 +9,10 @@ interface ICoords {
 
 const DATE_REGEX = /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/;
 
-export default class GroupedTeamIterations extends ValidationStrategy<IBoard> {
+export default class GroupedTeamIterations extends ValidationStrategy<IBoardModel> {
     private axisWithGroupedTeamIterations: 'x' | 'y';
 
-    public constructor(board: IBoard, axisWithGroupedTeamIterations: 'x' | 'y') {
+    public constructor(board: IBoardModel, axisWithGroupedTeamIterations: 'x' | 'y') {
         super(board);
         this.axisWithGroupedTeamIterations = axisWithGroupedTeamIterations;
     }

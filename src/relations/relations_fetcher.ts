@@ -1,6 +1,6 @@
 import Application, { IApplicationState } from 'src/application';
 import { RelationType } from 'src/relations';
-import { load } from 'src/utils/api';
+import { loadCollection } from 'src/utils/api';
 import * as globalBus from 'tau/core/global.bus';
 import * as _ from 'underscore';
 
@@ -170,7 +170,7 @@ export default class RelationsFetcher {
             return Promise.resolve([]);
         }
 
-        const rawRelations = await load<IRawRelation[]>('relations', {
+        const rawRelations = await loadCollection<IRawRelation>('relations', {
             where: `Master.Id in (${entityIds.join(',')})`,
             include: '[Slave[Id],Master[Id],RelationType[Name]]',
             take: 500

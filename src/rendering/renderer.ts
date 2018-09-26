@@ -1,12 +1,12 @@
 import classnames from 'libs/classNames';
 import Application, { IApplicationState } from 'src/application';
 import { Arrow } from 'src/arrows';
+import { ViewMode } from 'src/board';
 import * as styles from 'src/rendering/styles';
 import { createSvgFromTemplate } from 'src/rendering/svg';
 import { generateBezierCoords } from 'src/rendering/utils';
 import { IIntersection } from 'src/utils/intersection';
 import { isBoardConfigChanged } from 'src/utils/state';
-import ViewMode from 'src/view_mode';
 import * as _ from 'underscore';
 
 interface ICreateLineOptions {
@@ -175,7 +175,13 @@ export default class Renderer {
         if (isSvgMissingOrUnmounted) {
             const backend = this.application.getRenderingBackend();
             const $table = backend.getTable();
-            this.$svg = createSvgFromTemplate($table.width()!, $table.height()!);
+            const tableWidth = $table.width();
+            const tableHeight = $table.height();
+            if (!tableWidth || !tableHeight) {
+                return;
+            }
+
+            this.$svg = createSvgFromTemplate(tableWidth, tableHeight);
             backend.appendSvg(this.$svg);
         }
     }

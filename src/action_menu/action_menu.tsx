@@ -1,9 +1,9 @@
 import * as React from 'react';
 import LegendWrapper from 'src/action_menu/ui/legend_wrapper';
 import Application, { IApplicationState } from 'src/application';
+import { ViewMode } from 'src/board';
 import { RelationType } from 'src/relations';
 import tausTrack from 'src/utils/taus';
-import ViewMode from 'src/view_mode';
 import actionsIntegration from 'tau/api/actions/v1';
 import * as _ from 'underscore';
 

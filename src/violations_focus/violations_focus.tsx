@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
 import Application, { IApplicationState } from 'src/application';
-import ViewMode from 'src/view_mode';
+import { ViewMode } from 'src/board';
 import ViolationsButton from 'src/violations_focus/ui/violations_button';
 import configurator from 'tau/configurator';
 import * as _ from 'underscore';

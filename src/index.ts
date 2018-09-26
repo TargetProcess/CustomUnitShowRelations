@@ -1,49 +1,21 @@
 import * as $ from 'jquery';
 import Application from 'src/application';
-import ValidationStrategy from 'src/validation/strategies/strategy';
-import * as validationStrategyBuilder from 'src/validation/strategy_builder';
-import ViewMode from 'src/view_mode';
+import { IGenericBoardModel } from 'src/board';
 import { onBoardCreate, onDetailsCreate, onListCreate, onTimelineCreate } from 'tau/api/board/v1';
 import * as _ from 'underscore';
 
 import 'styles/index.scss';
 
-export interface IBoard {
-    boardSettings: IBoardSettings;
-    axes: {
-        x: IBoardAxe[];
-        y: IBoardAxe[];
-    };
-}
-
-export interface IBoardAxe {
-    id: string;
-    entity: {
-        id: number;
-        type: string;
-    };
-}
-
-export interface IBoardSettings {
-    settings: {
-        id: number;
-        viewMode: ViewMode;
-        hideEmptyLanes: boolean;
-        page?: { x: number, y: number }
-    };
-}
-
 const FRAME_DURATION_60_FPS = 1000 / 60;
 
 let initializedApplication: Application | null = null;
 
-async function updateApplicationConfig(validationStrategy: ValidationStrategy<any>, boardSettings: IBoardSettings) {
+async function updateApplicationConfig(boardModel: IGenericBoardModel) {
     if (!initializedApplication) {
         initializedApplication = new Application();
     }
 
-    await validationStrategy.initialize();
-    await initializedApplication.reinitialize(validationStrategy, boardSettings);
+    await initializedApplication.reinitialize(boardModel);
     return initializedApplication;
 }
 
@@ -53,7 +25,7 @@ const initialize = () => {
     });
 
     onBoardCreate(async (boardModel) => {
-        const application = await updateApplicationConfig(validationStrategyBuilder.buildStrategyForBoard(boardModel.board), boardModel.board.boardSettings);
+        const application = await updateApplicationConfig(boardModel.board);
 
         // When you first opens board, callbacks like onColumnResize are triggered after the actual event.
         // But if you change board configuration, TP begins to trigger them BEFORE the actual event.
@@ -88,7 +60,7 @@ const initialize = () => {
         const timelineEvents = timeline.events;
 
         timelineEvents.onRender.once(async () => {
-            const application = await updateApplicationConfig(validationStrategyBuilder.buildStrategyForTimeline(), timeline.boardSettings);
+            const application = await updateApplicationConfig(timeline);
 
             const throttledUpdateCardsAndArrowPosition = _.throttle(() => {
                 application.updateCards();
@@ -134,7 +106,7 @@ const initialize = () => {
         const listEvents = list.events;
 
         listEvents.onTreeRendered.once(async () => {
-            const application = await updateApplicationConfig(validationStrategyBuilder.buildStrategyForList(), list.boardSettings);
+            const application = await updateApplicationConfig(list);
 
             listEvents.onTreeRendered.add(() => {
                 application.updateCards();

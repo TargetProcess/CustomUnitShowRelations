@@ -1,7 +1,7 @@
 import Application from 'src/application';
+import { ViewMode } from 'src/board';
 import Card from 'src/cards/card';
 import CardOnTimeline, { CardType } from 'src/cards/card_on_timeline';
-import ViewMode from 'src/view_mode';
 import * as _ from 'underscore';
 
 export default function extractCardsFromUi(application: Application) {
