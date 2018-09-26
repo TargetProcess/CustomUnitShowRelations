@@ -10,6 +10,7 @@ import 'styles/violation_button.scss';
 
 const WRAPPER_CLASS = 'tau-board-header__control--relations';
 const SVG_FOCUS_ACTIVE_CLASS = 'focus-active';
+const LETTER_I_KEYCODE = 73;
 
 export default class ViolationFocus {
     public static register(application: Application) {
@@ -28,10 +29,11 @@ export default class ViolationFocus {
     public constructor(application: Application) {
         this.application = application;
         this.listenForBoardUiChanges();
+        this.attachShortcutListener();
     }
 
     private updateUi() {
-        const { viewMode, arrows, isFocusActive, visibleRelationTypes, isUiActive } = this.application.getState();
+        const { viewMode, isFocusActive, isUiActive } = this.application.getState();
 
         if (viewMode !== ViewMode.Board || !isUiActive) {
             this.cleanup();
@@ -48,7 +50,7 @@ export default class ViolationFocus {
         }
         this.buttonWrapper = newWrapper;
 
-        const arrowsWithViolations = arrows.filter((arrow) => arrow.isViolated() && visibleRelationTypes.has(arrow.getRelation().relationType));
+        const arrowsWithViolations = this.getVisibleArrowsWithViolations();
         if (arrowsWithViolations.length === 0) {
             $wrapper.hide();
             return;
@@ -78,6 +80,11 @@ export default class ViolationFocus {
         }
     }
 
+    private getVisibleArrowsWithViolations() {
+        const { arrows, visibleRelationTypes } = this.application.getState();
+        return arrows.filter((arrow) => arrow.isViolated() && visibleRelationTypes.has(arrow.getRelation().relationType));
+    }
+
     private tryCreateWrapper($boardHeader: JQuery) {
         const $existingWrapper = $boardHeader.find('.' + WRAPPER_CLASS);
         if ($existingWrapper.length !== 0) {
@@ -99,6 +106,31 @@ export default class ViolationFocus {
             $('.tau-board-header__control--mashup'),
             $('.tau-board-header__control--actions')
         ].find(($element) => $element.length !== 0);
+    }
+
+    private attachShortcutListener() {
+        $(window).keydown((event) => {
+            const isCtrlOrCmdPressed = event.ctrlKey || event.metaKey;
+            if (!isCtrlOrCmdPressed) {
+                return;
+            }
+
+            if (event.keyCode !== LETTER_I_KEYCODE) {
+                return;
+            }
+
+            const { viewMode, isFocusActive, isUiActive, isOnAppropriatePage } = this.application.getState();
+            if (!isOnAppropriatePage || !isUiActive || viewMode !== ViewMode.Board) {
+                return;
+            }
+
+            const arrowsWithViolations = this.getVisibleArrowsWithViolations();
+            if (arrowsWithViolations.length === 0) {
+                return;
+            }
+
+            this.application.setState({ isFocusActive: !isFocusActive });
+        });
     }
 
     private listenForBoardUiChanges() {
