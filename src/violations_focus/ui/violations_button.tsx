@@ -1,4 +1,4 @@
-import classnames from 'libs/classNames';
+import classnames from 'classnames';
 import * as React from 'react';
 
 interface IViolationsButtonProps {

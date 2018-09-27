@@ -1,9 +1,0 @@
-{
-    "ShortDescription": "Show relations as arrows on a Board, List View and Timeline",
-    "CompatibleTpVersion": {
-        "Minimum": "3.12.5"
-    },
-    "Placeholders": [
-        "restui_board"
-    ]
-}

@@ -1,4 +1,4 @@
-import classnames from 'libs/classNames';
+import classnames from 'classnames';
 import Application, { IApplicationState } from 'src/application';
 import { Arrow } from 'src/arrows';
 import { ViewMode } from 'src/board';

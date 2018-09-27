@@ -19,7 +19,7 @@ async function updateApplicationConfig(boardModel: IGenericBoardModel) {
     return initializedApplication;
 }
 
-const initialize = () => {
+export function initialize() {
     onDetailsCreate(() => {
         initializedApplication && initializedApplication.disable();
     });
@@ -123,6 +123,4 @@ const initialize = () => {
             });
         });
     });
-};
-
-initialize();
+}

@@ -1,4 +1,4 @@
-import classnames from 'libs/classNames';
+import classnames from 'classnames';
 import * as React from 'react';
 import LegendRelations from 'src/action_menu/ui/legend_relations';
 import { RelationType } from 'src/relations';
