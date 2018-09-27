@@ -1,3 +1,4 @@
+import * as Combokeys from 'combokeys';
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
 import Application, { IApplicationState } from 'src/application';
@@ -10,7 +11,7 @@ import 'styles/violation_button.scss';
 
 const WRAPPER_CLASS = 'tau-board-header__control--relations';
 const SVG_FOCUS_ACTIVE_CLASS = 'focus-active';
-const LETTER_I_KEYCODE = 73;
+const combokeys = new Combokeys(document.documentElement);
 
 export default class ViolationFocus {
     public static register(application: Application) {
@@ -109,16 +110,7 @@ export default class ViolationFocus {
     }
 
     private attachShortcutListener() {
-        $(window).keydown((event) => {
-            const isCtrlOrCmdPressed = event.ctrlKey || event.metaKey;
-            if (!isCtrlOrCmdPressed) {
-                return;
-            }
-
-            if (event.keyCode !== LETTER_I_KEYCODE) {
-                return;
-            }
-
+        combokeys.bind('i', () => {
             const { viewMode, isFocusActive, isUiActive, isOnAppropriatePage } = this.application.getState();
             if (!isOnAppropriatePage || !isUiActive || viewMode !== ViewMode.Board) {
                 return;

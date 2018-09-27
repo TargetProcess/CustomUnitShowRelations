@@ -114,6 +114,7 @@ const externals = () => ({
         'react',
         'react-dom',
         'react-dom/server',
+        'combokeys',
         { jquery: 'jQuery' },
         { underscore: 'Underscore' },
         'tau-intl',
