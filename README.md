@@ -1,4 +1,6 @@
-# CustomUnitShowRelations &middot; [![Build Status](https://travis-ci.org/TargetProcess/CustomUnitShowRelations.svg)](https://travis-ci.org/TargetProcess/CustomUnitShowRelations)
+# CustomUnitShowRelations
+
+## THIS PACKAGE WAS MOVED TO https://gitlab.tpondemand.net/mashups/show-relations
 
 Show relations as arrows on a Board, List View and Timeline View
 

@@ -1,5 +1,0 @@
-{
-    // NOTE: not a real babel config. It's here just to override {"modules": false} options in create-mashup-app which
-    // is incorrectly applied to node_modules and broke some deps, such as "lodash.isEqual".
-    "presets": ["env"]
-}
