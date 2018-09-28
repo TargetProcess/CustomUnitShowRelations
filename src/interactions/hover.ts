@@ -1,6 +1,7 @@
 import Application, { IApplicationState } from 'src/application';
 import { Arrow } from 'src/arrows';
 import { isBoardConfigChanged } from 'src/utils/state';
+import * as _ from 'underscore';
 
 export default class Hover {
     public static register(application: Application) {
@@ -17,7 +18,7 @@ export default class Hover {
     }
 
     private hoverArrowById(arrowId: string) {
-        const arrowToHover = this.application.getState().arrows.find((arrow) => arrow.getId() === arrowId)!;
+        const arrowToHover = _.find(this.application.getState().arrows, (arrow) => arrow.getId() === arrowId)!;
         this.addTitleToSvg(arrowToHover);
         this.application.setState({ hoveredArrow: arrowToHover });
     }
@@ -52,7 +53,7 @@ export default class Hover {
         }
 
         const $svg = this.application.getRenderingBackend().getSvg();
-        $svg.on('mouseenter', '.helperLine', (evt) => this.hoverArrowById(evt.target.dataset.arrowId!));
+        $svg.on('mouseenter', '.helperLine', (evt) => this.hoverArrowById(evt.target.getAttribute('data-arrow-id')!));
         $svg.on('mouseleave', '.helperLine', () => this.unhoverArrow());
         return {};
     }

@@ -1,4 +1,5 @@
 import { relationsConfigs, RelationType } from 'src/relations';
+import * as _ from 'underscore';
 
 export function getRelationTypeMarkerStartId(relationType: RelationType, hasViolations: boolean) {
     return `${relationType}${hasViolations ? '_violated' : ''}_start`;
@@ -13,5 +14,5 @@ export function getRelationTypeColor({ style }: any, hasViolations: boolean) {
 }
 
 export function getRelationColor(relationType: RelationType, hasViolations: boolean) {
-    return getRelationTypeColor(relationsConfigs.find(({ type }) => type === relationType), hasViolations);
+    return getRelationTypeColor(_.find(relationsConfigs, ({ type }) => type === relationType), hasViolations);
 }

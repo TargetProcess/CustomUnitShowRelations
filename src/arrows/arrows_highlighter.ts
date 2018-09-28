@@ -49,7 +49,7 @@ export default class ArrowsHighlighter {
         const highlightedArrowIds = new Set(arrowsToHighlight.map((arrow) => arrow.getId()));
 
         $(`.line.${HIGHLIGTED_LINE_CLASS}`).each((_index, lineElement) => {
-            const arrowId = lineElement.dataset.arrowId!;
+            const arrowId = lineElement.getAttribute('data-arrow-id')!;
             if (!highlightedArrowIds.has(arrowId)) {
                 removeClassFromSvgElement(lineElement, HIGHLIGTED_LINE_CLASS);
             }

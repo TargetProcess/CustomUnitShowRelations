@@ -2,6 +2,7 @@ import { IBoardAxe, IBoardModel, IGenericBoardModel, ViewMode } from 'src/board'
 import EntityWithStartDate, { KNOWN_ENTITIES } from 'src/validation/strategies/board/entity_with_start_date';
 import GroupedTeamIterations from 'src/validation/strategies/board/grouped_team_iterations';
 import VoidStrategy from 'src/validation/strategies/void_strategy';
+import * as _ from 'underscore';
 
 export async function buildValidationStategy(viewMode: ViewMode, boardModel: IGenericBoardModel) {
     const validationStrategy = getValidationStrategyForViewMode(viewMode, boardModel);
@@ -66,7 +67,7 @@ function tryBuildGroupedTeamIterationsBoardStrategy(board: IBoardModel) {
 
 function tryBuildEntityWithStartDateStrategy(board: IBoardModel) {
     let axisWithEntity: 'x' | 'y' | null = null;
-    const hasSuitableEntity = (columnOrRows: IBoardAxe[]) => columnOrRows.some((columnOrRow) => KNOWN_ENTITIES.includes(columnOrRow.entity.type));
+    const hasSuitableEntity = (columnOrRows: IBoardAxe[]) => columnOrRows.some((columnOrRow) => _.includes(KNOWN_ENTITIES, columnOrRow.entity.type));
 
     if (hasSuitableEntity(board.axes.x)) {
         axisWithEntity = 'x';
@@ -77,6 +78,6 @@ function tryBuildEntityWithStartDateStrategy(board: IBoardModel) {
         return null;
     }
 
-    const foundEntityName = KNOWN_ENTITIES.find((knownEntityName) => board.axes[axisWithEntity!].some(({ entity }) => entity.type === knownEntityName))!;
+    const foundEntityName = _.find(KNOWN_ENTITIES, (knownEntityName) => board.axes[axisWithEntity!].some(({ entity }) => entity.type === knownEntityName))!;
     return new EntityWithStartDate(board, foundEntityName, axisWithEntity);
 }
