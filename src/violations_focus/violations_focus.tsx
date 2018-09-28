@@ -104,10 +104,10 @@ export default class ViolationFocus {
     }
 
     private findNeighbourElement() {
-        return [
+        return _.find([
             $('.tau-board-header__control--mashup'),
             $('.tau-board-header__control--actions')
-        ].find(($element) => $element.length !== 0);
+        ], ($element) => $element.length !== 0);
     }
 
     private attachShortcutListener() {

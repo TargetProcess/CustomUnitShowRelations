@@ -46,8 +46,8 @@ export default class Selection {
     private getNewSelectedArrows(clickedArrowId: string, isMultiselectMode: boolean) {
         const { arrows, selectedArrows } = this.application.getState();
 
-        const clickedArrow = arrows.find((arrow) => arrow.getId() === clickedArrowId)!;
-        const wasSelected = selectedArrows.includes(clickedArrow);
+        const clickedArrow = _.find(arrows, (arrow) => arrow.getId() === clickedArrowId)!;
+        const wasSelected = _.includes(selectedArrows, clickedArrow);
         if (isMultiselectMode) {
             return wasSelected ? selectedArrows.filter((arrow) => arrow !== clickedArrow) : [...selectedArrows, clickedArrow];
         } else {

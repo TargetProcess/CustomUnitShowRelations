@@ -2,6 +2,7 @@ import { IBoardModel } from 'src/board';
 import { loadCollection } from 'src/utils/api';
 import ValidationStrategy from 'src/validation/strategies/strategy';
 import * as dateUtils from 'tau/utils/utils.date';
+import * as _ from 'underscore';
 
 export const KNOWN_ENTITIES = [
     'release',
@@ -56,8 +57,8 @@ export default class EntityWithStartDate extends ValidationStrategy<IBoardModel>
             return false;
         }
 
-        const masterElementEntity = this.loadedEntities.find((entity) => entity.Id === Number(masterElementCoords[this.axisWithEntity]));
-        const slaveElementEntity = this.loadedEntities.find((entity) => entity.Id === Number(slaveElementCoords[this.axisWithEntity]));
+        const masterElementEntity = _.find(this.loadedEntities, (entity) => entity.Id === Number(masterElementCoords[this.axisWithEntity]));
+        const slaveElementEntity = _.find(this.loadedEntities, (entity) => entity.Id === Number(slaveElementCoords[this.axisWithEntity]));
         if (!masterElementEntity) {
             return false;
         }
