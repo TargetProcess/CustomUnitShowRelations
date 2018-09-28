@@ -36,7 +36,7 @@ export default class Selection {
         const selectedArrowIds = new Set(selectedArrows.map((arrow) => arrow.getId()));
 
         this.application.getRenderingBackend().getSvg().find(`.${SELECTED_LINE_CLASS}`).each((_index, element) => {
-            const arrowId = element.dataset.arrowId!;
+            const arrowId = element.getAttribute('data-arrow-id')!;
             if (!selectedArrowIds.has(arrowId)) {
                 removeClassFromSvgElement(element, SELECTED_LINE_CLASS);
             }
@@ -63,7 +63,7 @@ export default class Selection {
         const renderingBackend = this.application.getRenderingBackend();
         const $svg = renderingBackend.getSvg();
         $svg.on('mousedown', '.helperLine', (evt) => {
-            const clickedArrowId = evt.target.dataset.arrowId!;
+            const clickedArrowId = evt.target.getAttribute('data-arrow-id')!;
             const isCtrlOrCmdPressed = evt.ctrlKey || evt.metaKey;
             this.application.setState({ selectedArrows: this.getNewSelectedArrows(clickedArrowId, isCtrlOrCmdPressed) });
             return false;
