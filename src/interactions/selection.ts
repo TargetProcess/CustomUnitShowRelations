@@ -1,6 +1,7 @@
 import * as $ from 'jquery';
 import Application, { IApplicationState } from 'src/application';
 import { Arrow } from 'src/arrows';
+import { addClassToSvgElement, removeClassFromSvgElement } from 'src/utils/dom';
 import { isBoardConfigChanged } from 'src/utils/state';
 import tausTrack from 'src/utils/taus';
 import * as _ from 'underscore';
@@ -26,7 +27,7 @@ export default class Selection {
 
     private selectArrow(arrow: Arrow) {
         this.application.getRenderingBackend().getSvg().find(`.line[data-arrow-id="${arrow.getId()}"]`).each((_index, lineElement) => {
-            lineElement.classList.add(SELECTED_LINE_CLASS);
+            addClassToSvgElement(lineElement, SELECTED_LINE_CLASS);
         });
     }
 
@@ -37,7 +38,7 @@ export default class Selection {
         this.application.getRenderingBackend().getSvg().find(`.${SELECTED_LINE_CLASS}`).each((_index, element) => {
             const arrowId = element.dataset.arrowId!;
             if (!selectedArrowIds.has(arrowId)) {
-                element.classList.remove(SELECTED_LINE_CLASS);
+                removeClassFromSvgElement(element, SELECTED_LINE_CLASS);
             }
         });
     }

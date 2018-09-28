@@ -1,5 +1,6 @@
 import Application, { IApplicationState } from 'src/application';
 import { Arrow } from 'src/arrows';
+import { addClassToSvgElement, removeClassFromSvgElement } from 'src/utils/dom';
 import { getHighlightedArrows } from 'src/utils/state';
 import * as _ from 'underscore';
 
@@ -26,7 +27,7 @@ export default class ArrowsHighlighter {
             return;
         }
 
-        $svg.get(0).classList.add(HIGHLIGTED_SVG_CLASS);
+        addClassToSvgElement($svg.get(0), HIGHLIGTED_SVG_CLASS);
     }
 
     private disableHighlighting() {
@@ -35,12 +36,12 @@ export default class ArrowsHighlighter {
             return;
         }
 
-        $svg.get(0).classList.remove(HIGHLIGTED_SVG_CLASS);
+        removeClassFromSvgElement($svg.get(0), HIGHLIGTED_SVG_CLASS);
     }
 
     private highlightArrow(arrow: Arrow) {
         this.application.getRenderingBackend().getSvg().find(`.line[data-arrow-id="${arrow.getId()}"]`).each((_index, element) => {
-            element.classList.add(HIGHLIGTED_LINE_CLASS);
+            addClassToSvgElement(element, HIGHLIGTED_LINE_CLASS);
         });
     }
 
@@ -50,7 +51,7 @@ export default class ArrowsHighlighter {
         $(`.line.${HIGHLIGTED_LINE_CLASS}`).each((_index, lineElement) => {
             const arrowId = lineElement.dataset.arrowId!;
             if (!highlightedArrowIds.has(arrowId)) {
-                lineElement.classList.remove(HIGHLIGTED_LINE_CLASS);
+                removeClassFromSvgElement(lineElement, HIGHLIGTED_LINE_CLASS);
             }
         });
     }

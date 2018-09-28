@@ -3,6 +3,7 @@ import * as React from 'react';
 import * as ReactDom from 'react-dom';
 import Application, { IApplicationState } from 'src/application';
 import { ViewMode } from 'src/board';
+import { addClassToSvgElement, removeClassFromSvgElement } from 'src/utils/dom';
 import ViolationsButton from 'src/violations_focus/ui/violations_button';
 import configurator from 'tau/configurator';
 import * as _ from 'underscore';
@@ -198,7 +199,9 @@ export default class ViolationFocus {
             return {};
         }
 
-        changes.isFocusActive ? $svg.get(0).classList.add(SVG_FOCUS_ACTIVE_CLASS) : $svg.get(0).classList.remove(SVG_FOCUS_ACTIVE_CLASS);
+        changes.isFocusActive ?
+            addClassToSvgElement($svg.get(0), SVG_FOCUS_ACTIVE_CLASS) :
+            removeClassFromSvgElement($svg.get(0), SVG_FOCUS_ACTIVE_CLASS);
         return {};
     }
 }
