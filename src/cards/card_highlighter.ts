@@ -1,6 +1,7 @@
 import * as $ from 'jquery';
 import Application, { IApplicationState } from 'src/application';
 import { Card } from 'src/cards';
+import { addClassToSvgElement, removeClassFromSvgElement } from 'src/utils/dom';
 import { getHighlightedArrows } from 'src/utils/state';
 import * as _ from 'underscore';
 
@@ -30,14 +31,14 @@ export default class CardHighlighter {
     }
 
     private highlightCard(card: Card) {
-        card.getElement().classList.add(HIGHLIGHTED_CARD_CLASS);
+        addClassToSvgElement(card.getElement(), HIGHLIGHTED_CARD_CLASS);
     }
 
     private unhighlightExtraCards(cardsToHighlight: Card[]) {
         const highlightedCardElements = new Set(cardsToHighlight.map((card) => card.getElement()));
         $(`.${HIGHLIGHTED_CARD_CLASS}`).each((_index, cardElement) => {
             if (!highlightedCardElements.has(cardElement)) {
-                cardElement.classList.remove(HIGHLIGHTED_CARD_CLASS);
+                removeClassFromSvgElement(cardElement, HIGHLIGHTED_CARD_CLASS);
             }
         });
     }
