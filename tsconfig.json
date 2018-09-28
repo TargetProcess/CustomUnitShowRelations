@@ -19,6 +19,6 @@
       "src/**/*",
       "assets/**/*",
       "typings/**/*",
-      "test/**/*"
+      "tests/**/*"
     ]
   }
