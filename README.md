@@ -1,6 +1,6 @@
 # CustomUnitShowRelations
 
-## THIS PACKAGE WAS MOVED TO https://gitlab.tpondemand.net/mashups/show-relations
+## THIS PACKAGE WAS MOVED TO https://gitlab.tpondemand.net/relations/show-relations
 
 Show relations as arrows on a Board, List View and Timeline View
 
